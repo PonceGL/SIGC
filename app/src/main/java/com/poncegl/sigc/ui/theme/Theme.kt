@@ -3,52 +3,97 @@ package com.poncegl.sigc.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
-    primaryContainer = PrimaryVariantDark,
-    secondary = SecondaryDark,
-    background = BackgroundDark,
-    surface = SurfaceDark,
-    surfaceVariant = SurfaceVariantDark,
     onPrimary = OnPrimaryDark,
+    primaryContainer = PrimaryContainerDark,
+    onPrimaryContainer = OnPrimaryContainerDark,
+    secondary = SecondaryDark,
     onSecondary = OnSecondaryDark,
+    background = BackgroundDark,
     onBackground = OnBackgroundDark,
+    surface = SurfaceDark,
     onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = OnSurfaceVariantDark,
-    error = ErrorDark
+    outline = OutlineDark,
+    error = ErrorDark,
+    onError = OnErrorDark
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryLight,
-    primaryContainer = PrimaryVariantLight,
-    secondary = SecondaryLight,
-    background = BackgroundLight,
-    surface = SurfaceLight,
-    surfaceVariant = SurfaceVariantLight,
     onPrimary = OnPrimaryLight,
+    primaryContainer = PrimaryContainerLight,
+    onPrimaryContainer = OnPrimaryContainerLight,
+    secondary = SecondaryLight,
     onSecondary = OnSecondaryLight,
+    background = BackgroundLight,
     onBackground = OnBackgroundLight,
+    surface = SurfaceLight,
     onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = OnSurfaceVariantLight,
-    error = ErrorLight
+    outline = OutlineLight,
+    error = ErrorLight,
+    onError = OnErrorLight
 )
+
+
+@Immutable
+data class ExtendedColors(
+    val success: Color,
+    val warning: Color,
+    val medCompleted: Color,
+    val medPending: Color,
+    val medMissed: Color,
+    val medUpcoming: Color
+)
+
+val LightExtendedColors = ExtendedColors(
+    success = SuccessLight,
+    warning = WarningLight,
+    medCompleted = MedCompletedLight,
+    medPending = MedPendingLight,
+    medMissed = MedMissedLight,
+    medUpcoming = MedUpcomingLight
+)
+
+val DarkExtendedColors = ExtendedColors(
+    success = SuccessDark,
+    warning = WarningDark,
+    medCompleted = MedCompletedDark,
+    medPending = MedPendingDark,
+    medMissed = MedMissedDark,
+    medUpcoming = MedUpcomingDark
+)
+
+val LocalExtendedColors = staticCompositionLocalOf {
+    LightExtendedColors
+}
 
 @Composable
 fun SIGCTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+ but disabled by default for consistent branding
+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -57,9 +102,14 @@ fun SIGCTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
+
+    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -69,9 +119,26 @@ fun SIGCTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+
+    CompositionLocalProvider(
+        LocalExtendedColors provides extendedColors
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+}
+
+
+object SigcTheme {
+    val colors: ExtendedColors
+        @Composable
+        get() = LocalExtendedColors.current
+
+
+    val materialColors: ColorScheme
+        @Composable
+        get() = MaterialTheme.colorScheme
 }

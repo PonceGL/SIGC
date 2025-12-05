@@ -28,7 +28,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +38,7 @@ import com.poncegl.sigc.ui.components.onboarding.OnboardingHeader
 import com.poncegl.sigc.ui.components.shared.PageIndicator
 import com.poncegl.sigc.ui.feature.auth.model.onboardingPagesData
 import com.poncegl.sigc.ui.theme.SIGCTheme
+import com.poncegl.sigc.ui.theme.SigcTheme
 
 @Composable
 fun OnboardingScreen(
@@ -116,9 +116,9 @@ fun OnboardingScreen(
             ) { index ->
                 val dynamicIconColor = when (index) {
                     0 -> MaterialTheme.colorScheme.primary
-                    1 -> Color(0xFFf59f0a)
-                    2 -> Color(0xFF21c45d)
-                    3 -> Color(0xFF337fcc)
+                    1 -> SigcTheme.colors.warning
+                    2 -> SigcTheme.colors.success
+                    3 -> SigcTheme.colors.medUpcoming
                     else -> MaterialTheme.colorScheme.primary
                 }
 

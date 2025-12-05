@@ -28,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -113,10 +114,19 @@ fun OnboardingScreen(
                 },
                 label = "OnboardingAnimation"
             ) { index ->
+                val dynamicIconColor = when (index) {
+                    0 -> MaterialTheme.colorScheme.primary
+                    1 -> Color(0xFFf59f0a)
+                    2 -> Color(0xFF21c45d)
+                    3 -> Color(0xFF337fcc)
+                    else -> MaterialTheme.colorScheme.primary
+                }
+
                 OnboardingContent(
                     painter = painterResource(id = pages[index].imageRes),
                     title = pages[index].title,
-                    description = pages[index].description
+                    description = pages[index].description,
+                    iconColor = dynamicIconColor
                 )
             }
 

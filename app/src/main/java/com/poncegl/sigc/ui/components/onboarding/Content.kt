@@ -1,13 +1,24 @@
 package com.poncegl.sigc.ui.components.onboarding
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,12 +31,33 @@ import com.poncegl.sigc.R
 fun OnboardingContent(
     painter: Painter,
     title: String,
-    description: String
+    description: String,
+    iconColor: Color = MaterialTheme.colorScheme.primary
 ) {
+    var scaleTarget by remember { mutableFloatStateOf(0.5f) }
+    LaunchedEffect(Unit) {
+        scaleTarget = 1f
+    }
+
+    val scale by animateFloatAsState(
+        targetValue = scaleTarget,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "IconScaleAnimation"
+    )
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SlideIcon(painter, color = MaterialTheme.colorScheme.primary)
+        Box(
+            modifier = Modifier.graphicsLayer(
+                scaleX = scale,
+                scaleY = scale
+            )
+        ) {
+            SlideIcon(painter, color = iconColor)
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

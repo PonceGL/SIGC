@@ -43,6 +43,14 @@ fun OnboardingScreen() {
         )
 
         OnboardingContent(
+            painter = when (counter) {
+                0 -> com.poncegl.sigc.R.drawable.heart
+                1 -> com.poncegl.sigc.R.drawable.bell
+                2 -> com.poncegl.sigc.R.drawable.people
+                else -> com.poncegl.sigc.R.drawable.list
+            }.let { resId ->
+                androidx.compose.ui.res.painterResource(id = resId)
+            },
             title = "Cuidado Integral $counter",
             description = "Centraliza toda la información de cuidados de tu paciente en un solo lugar. Medicamentos, signos vitales y más."
         )

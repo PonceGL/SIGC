@@ -19,12 +19,12 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
         setContent {
             SIGCTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        SigcNavHost(modifier = Modifier.padding(innerPadding))
+                        SigcNavHost()
                     }
                 }
             }
@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
 @Preview(showSystemUi = true)
 @Composable
 fun SigcPreview() {
-    SIGCTheme(darkTheme = false){
+    SIGCTheme(darkTheme = false) {
         SigcNavHost()
     }
 }

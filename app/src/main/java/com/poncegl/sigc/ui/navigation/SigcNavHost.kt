@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.poncegl.sigc.ui.feature.auth.WelcomeScreen
+import com.poncegl.sigc.ui.feature.auth.OnboardingScreen
 
 @Composable
 fun SigcNavHost() {
@@ -17,7 +17,7 @@ fun SigcNavHost() {
 
     NavHost(navController = navController, startDestination = Screen.Welcome.route) {
         composable(Screen.Welcome.route) {
-            WelcomeScreen()
+            OnboardingScreen()
         }
         composable(Screen.Login.route) {
             PlaceholderScreen("Login Screen")

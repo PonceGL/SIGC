@@ -1,32 +1,84 @@
 package com.poncegl.sigc.ui.feature.auth
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.ui.components.onboarding.NavigationButtons
 import com.poncegl.sigc.ui.components.onboarding.OnboardingContent
 import com.poncegl.sigc.ui.components.onboarding.OnboardingHeader
+import com.poncegl.sigc.ui.components.shared.PageIndicator
+import com.poncegl.sigc.ui.feature.auth.model.onboardingPagesData
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
 @Composable
-fun OnboardingScreen() {
+fun OnboardingScreen(
+    onNavigateToHome: () -> Unit = {}
+) {
+    var currentPageIndex by rememberSaveable { mutableIntStateOf(0) }
+    var showExitDialog by remember { mutableStateOf(false) }
 
-    var showPrevious by rememberSaveable { mutableStateOf(false) }
-    var counter by rememberSaveable { mutableIntStateOf(0) }
+    val pages = onboardingPagesData
+    val context = LocalContext.current
 
+    BackHandler(enabled = true) {
+        if (currentPageIndex > 0) {
+            currentPageIndex--
+        } else {
+            showExitDialog = true
+        }
+    }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text(text = "Salir de SIGC") },
+            text = { Text(text = "¿Estás seguro de que deseas salir de la aplicación?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val activity = context as? Activity
+                        activity?.finish()
+                    }
+                ) {
+                    Text("Salir")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -39,31 +91,54 @@ fun OnboardingScreen() {
     ) {
 
         OnboardingHeader(
-            onSkipClick = { /* TODO: Navigate to Home/Login */ }
+            onSkipClick = onNavigateToHome
         )
 
-        OnboardingContent(
-            painter = when (counter) {
-                0 -> com.poncegl.sigc.R.drawable.heart
-                1 -> com.poncegl.sigc.R.drawable.bell
-                2 -> com.poncegl.sigc.R.drawable.people
-                else -> com.poncegl.sigc.R.drawable.list
-            }.let { resId ->
-                androidx.compose.ui.res.painterResource(id = resId)
-            },
-            title = "Cuidado Integral $counter",
-            description = "Centraliza toda la información de cuidados de tu paciente en un solo lugar. Medicamentos, signos vitales y más."
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            AnimatedContent(
+                targetState = currentPageIndex,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> -width } + fadeOut())
+                    } else {
+                        (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> width } + fadeOut())
+                    }
+                },
+                label = "OnboardingAnimation"
+            ) { index ->
+                OnboardingContent(
+                    painter = painterResource(id = pages[index].imageRes),
+                    title = pages[index].title,
+                    description = pages[index].description
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            PageIndicator(
+                pageSize = pages.size,
+                selectedPage = currentPageIndex
+            )
+        }
 
         NavigationButtons(
-            showPrevious = showPrevious,
+            showPrevious = currentPageIndex > 0,
             onPreviousClick = {
-                if (counter > 0) counter--
-                if (counter == 0) showPrevious = false
+                if (currentPageIndex > 0) currentPageIndex--
             },
             onNextClick = {
-                counter++
-                showPrevious = true
+                if (currentPageIndex < pages.size - 1) {
+                    currentPageIndex++
+                } else {
+                    onNavigateToHome()
+                }
             }
         )
     }
@@ -73,6 +148,8 @@ fun OnboardingScreen() {
 @Composable
 fun OnboardingScreenPreview() {
     SIGCTheme(darkTheme = false) {
-        OnboardingScreen()
+        OnboardingScreen(onNavigateToHome = {
+            println("Navegar a Home")
+        })
     }
 }

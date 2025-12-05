@@ -8,12 +8,12 @@ val PrimaryVariantLight = Color(0xFF5FCBC0)    // Lighter teal
 val SecondaryLight = Color(0xFFf9fafb)         // Blue accent
 val BackgroundLight = Color(0xFFF5F8F7)        // Very light gray/off-white
 val SurfaceLight = Color(0xFFFFFFFF)           // Pure white for cards
-val SurfaceVariantLight = Color(0xFFF0F4F3)    // Slightly tinted surface
+val SurfaceVariantLight = Color(0xFFEAEAEA)    // Slightly tinted surface
 val OnPrimaryLight = Color(0xFFFFFFFF)         // White text on primary
 val OnSecondaryLight = Color(0xFFF3F3F3)       // White text on secondary
 val OnBackgroundLight = Color(0xFF1A2E2E)      // Dark text on background
 val OnSurfaceLight = Color(0xFF14181f)         // Dark text on surface
-val OnSurfaceVariantLight = Color(0xFF676f7e) // Medium gray text
+val OnSurfaceVariantLight = Color(0xFF1C1C1C) // Medium gray text
 
 // Dark Mode Colors
 val PrimaryDark = Color(0xFF1daf8d)            // Teal accent (same as light)

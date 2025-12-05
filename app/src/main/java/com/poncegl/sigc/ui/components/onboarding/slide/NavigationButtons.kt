@@ -1,0 +1,99 @@
+package com.poncegl.sigc.ui.components.onboarding.slide
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.ui.theme.SIGCTheme
+import androidx.compose.material3.MaterialTheme
+
+@Composable
+fun NavigationButtons(
+    showPrevious: Boolean,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+
+        if (showPrevious) {
+            OutlinedButton(
+                onClick = onPreviousClick,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant)
+            ) {
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Anterior")
+            }
+        }
+
+        Button(
+            onClick = onNextClick,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+        ) {
+            Text(text = "Siguiente")
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun NavigationButtonsPreview() {
+    SIGCTheme(darkTheme = false) {
+        Column {
+            NavigationButtons(
+                showPrevious = true,
+                onPreviousClick = {},
+                onNextClick = {}
+            )
+
+            NavigationButtons(
+                showPrevious = false,
+                onPreviousClick = {},
+                onNextClick = {}
+            )
+        }
+    }
+
+}

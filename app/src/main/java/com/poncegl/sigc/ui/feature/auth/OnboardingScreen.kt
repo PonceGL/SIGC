@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.BuildConfig
 import com.poncegl.sigc.ui.components.onboarding.NavigationButtons
 import com.poncegl.sigc.ui.components.onboarding.OnboardingContent
 import com.poncegl.sigc.ui.components.onboarding.OnboardingHeader
@@ -44,6 +45,7 @@ import com.poncegl.sigc.ui.theme.SigcTheme
 fun OnboardingScreen(
     onNavigateToHome: () -> Unit = {}
 ) {
+    val appName = BuildConfig.APP_NAME
     var currentPageIndex by rememberSaveable { mutableIntStateOf(0) }
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -61,7 +63,7 @@ fun OnboardingScreen(
     if (showExitDialog) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
-            title = { Text(text = "Salir de SIGC") },
+            title = { Text(text = "Salir de $appName") },
             text = { Text(text = "¿Estás seguro de que deseas salir de la aplicación?") },
             confirmButton = {
                 TextButton(

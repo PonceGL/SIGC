@@ -13,9 +13,28 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-fun getSecret(keyName: String, flavorSuffix: String): String {
+fun getSecretStrict(keyName: String, flavorSuffix: String): String {
     val fullKey = if (flavorSuffix.isEmpty()) keyName else "${keyName}_$flavorSuffix"
-    return localProperties.getProperty(fullKey) ?: ""
+
+    val value = localProperties.getProperty(fullKey)
+
+    if (value.isNullOrEmpty()) {
+        throw GradleException(
+            """
+            |
+            |❌ ERROR CRÍTICO DE CONFIGURACIÓN:
+            |---------------------------------------------------
+            |Falta la variable requerida: '$fullKey'
+            |Ubicación esperada: archivo 'local.properties'
+            |
+            |Por favor agrega esta variable para el ambiente seleccionado
+            |antes de intentar compilar nuevamente.
+            |---------------------------------------------------
+            """.trimMargin()
+        )
+    }
+
+    return value
 }
 
 android {
@@ -101,7 +120,7 @@ android {
         )
 
         secretsKeys.forEach { key ->
-            val value = getSecret(key, suffix)
+            val value = getSecretStrict(key, suffix)
 
             buildConfigField("String", key, "\"$value\"")
         }

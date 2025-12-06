@@ -34,7 +34,7 @@ fun OnboardingHeader(
         TextButton (onClick = onSkipClick) {
             Text(
                 text = "Omitir",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

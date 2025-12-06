@@ -13,6 +13,11 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
+fun getSecret(keyName: String, flavorSuffix: String): String {
+    val fullKey = if (flavorSuffix.isEmpty()) keyName else "${keyName}_$flavorSuffix"
+    return localProperties.getProperty(fullKey) ?: ""
+}
+
 android {
     namespace = "com.poncegl.sigc"
     compileSdk = 34
@@ -62,43 +67,55 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-
-            buildConfigField("String", "APP_NAME", "\"SIGC - DEV\"")
-
-            val key = localProperties.getProperty("API_KEY_DEV") ?: "no_key_found"
-            buildConfigField("String", "API_KEY", "\"$key\"")
         }
-
         create("qa") {
             dimension = "environment"
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
-
-            buildConfigField("String", "APP_NAME", "\"SIGC - QA\"")
-
-            val key = localProperties.getProperty("API_KEY_QA") ?: "no_key_found"
-            buildConfigField("String", "API_KEY", "\"$key\"")
         }
-
         create("staging") {
             dimension = "environment"
-            applicationIdSuffix = ".staging"
+            applicationIdSuffix = ".stg"
             versionNameSuffix = "-stg"
-
-            buildConfigField("String", "APP_NAME", "\"SIGC - STAGING\"")
-
-            val key = localProperties.getProperty("API_KEY_STAGING") ?: "no_key_found"
-            buildConfigField("String", "API_KEY", "\"$key\"")
         }
-
         create("prod") {
             dimension = "environment"
-
-            buildConfigField("String", "APP_NAME", "\"SIGC\"")
-
-            val key = localProperties.getProperty("API_KEY_PROD") ?: "no_key_found"
-            buildConfigField("String", "API_KEY", "\"$key\"")
+            // Prod no suele llevar sufijos
         }
+    }
+
+    applicationVariants.all {
+        val flavorName = flavorName
+
+        val suffix = when(flavorName) {
+            "dev" -> "DEV"
+            "qa" -> "QA"
+            "staging" -> "STAGING"
+            "prod" -> "PROD"
+            else -> ""
+        }
+
+        val secretsKeys = listOf(
+            "API_KEY",
+            "APP_NAME"
+        )
+
+        secretsKeys.forEach { key ->
+            val value = getSecret(key, suffix)
+
+            buildConfigField("String", key, "\"$value\"")
+        }
+
+        val appNameVariant = when(flavorName) {
+            "dev" -> "SIGC - DEV"
+            "qa" -> "SIGC - QA"
+            "staging" -> "SIGC - STG"
+            else -> "SIGC"
+        }
+
+        resValue("string", "app_name_flavor", appNameVariant)
+
+        buildConfigField("String", "APP_NAME", "\"$appNameVariant\"")
     }
 
     composeOptions {

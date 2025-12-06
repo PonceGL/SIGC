@@ -1,8 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+}
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
 }
 
 android {
@@ -17,6 +25,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_KEY", "\"UNSET\"")
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -40,7 +51,56 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
+//    Environments
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+
+            buildConfigField("String", "APP_NAME", "\"SIGC - DEV\"")
+
+            val key = localProperties.getProperty("API_KEY_DEV") ?: "no_key_found"
+            buildConfigField("String", "API_KEY", "\"$key\"")
+        }
+
+        create("qa") {
+            dimension = "environment"
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+
+            buildConfigField("String", "APP_NAME", "\"SIGC - QA\"")
+
+            val key = localProperties.getProperty("API_KEY_QA") ?: "no_key_found"
+            buildConfigField("String", "API_KEY", "\"$key\"")
+        }
+
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-stg"
+
+            buildConfigField("String", "APP_NAME", "\"SIGC - STAGING\"")
+
+            val key = localProperties.getProperty("API_KEY_STAGING") ?: "no_key_found"
+            buildConfigField("String", "API_KEY", "\"$key\"")
+        }
+
+        create("prod") {
+            dimension = "environment"
+
+            buildConfigField("String", "APP_NAME", "\"SIGC\"")
+
+            val key = localProperties.getProperty("API_KEY_PROD") ?: "no_key_found"
+            buildConfigField("String", "API_KEY", "\"$key\"")
+        }
+    }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }

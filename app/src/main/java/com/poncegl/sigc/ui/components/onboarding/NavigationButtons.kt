@@ -14,24 +14,26 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.ui.theme.SIGCTheme
-import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun NavigationButtons(
     showPrevious: Boolean,
+    isLast: Boolean = false,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -41,15 +43,14 @@ fun NavigationButtons(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.primary,
                 ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
             ) {
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = null
+                    contentDescription = "Icono de flecha izquierda"
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Anterior")
@@ -62,36 +63,41 @@ fun NavigationButtons(
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                ),
+                contentColor = Color.White,
+            ),
         ) {
-            Text(text = "Siguiente")
+            Text(text = if (isLast) "Comenzar" else "Siguiente")
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null
+                contentDescription = "Icono de flecha derecha"
             )
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun NavigationButtonsPreview() {
     SIGCTheme(darkTheme = false) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             NavigationButtons(
                 showPrevious = true,
+                isLast = true,
                 onPreviousClick = {},
                 onNextClick = {}
             )
 
             NavigationButtons(
                 showPrevious = false,
+                isLast = false,
                 onPreviousClick = {},
                 onNextClick = {}
             )
         }
     }
-
 }

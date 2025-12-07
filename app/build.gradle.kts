@@ -39,12 +39,12 @@ fun getSecretStrict(keyName: String, flavorSuffix: String): String {
 
 android {
     namespace = "com.poncegl.sigc"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.poncegl.sigc"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -160,6 +160,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.material3.window.size)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

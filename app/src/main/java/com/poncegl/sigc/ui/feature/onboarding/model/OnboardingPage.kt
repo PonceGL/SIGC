@@ -1,4 +1,4 @@
-package com.poncegl.sigc.ui.feature.auth.model
+package com.poncegl.sigc.ui.feature.onboarding.model
 
 import androidx.annotation.DrawableRes
 import com.poncegl.sigc.R

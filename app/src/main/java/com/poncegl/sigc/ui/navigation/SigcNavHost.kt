@@ -9,30 +9,27 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.poncegl.sigc.ui.feature.auth.OnboardingScreen
 
 @Composable
 fun SigcNavHost() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.Welcome.route) {
-        composable(Screen.Welcome.route) {
-            OnboardingScreen()
+    NavHost(
+        navController = navController,
+        startDestination = OnboardingDestination.route
+    ) {
+        authGraph(navController)
+
+        composable(DashboardDestination.route) {
+            PlaceholderScreen("Dashboard Principal")
         }
-        composable(Screen.Login.route) {
-            PlaceholderScreen("Login Screen")
+
+        composable(PatientListDestination.route) {
+            PlaceholderScreen("Lista de Pacientes")
         }
-        composable(Screen.SignUp.route) {
-            PlaceholderScreen("Sign Up Screen")
-        }
-        composable(Screen.Dashboard.route) {
-            PlaceholderScreen("Dashboard Screen")
-        }
-        composable(Screen.PatientList.route) {
-            PlaceholderScreen("Patient List Screen")
-        }
-        composable(Screen.MedicationList.route) {
-            PlaceholderScreen("Medication List Screen")
+
+        composable(MedicationListDestination.route) {
+            PlaceholderScreen("Lista de Medicamentos")
         }
     }
 }

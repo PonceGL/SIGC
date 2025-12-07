@@ -1,4 +1,4 @@
-package com.poncegl.sigc.ui.feature.auth
+package com.poncegl.sigc.ui.feature.onboarding
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
@@ -37,13 +37,13 @@ import com.poncegl.sigc.ui.components.onboarding.NavigationButtons
 import com.poncegl.sigc.ui.components.onboarding.OnboardingContent
 import com.poncegl.sigc.ui.components.onboarding.OnboardingHeader
 import com.poncegl.sigc.ui.components.shared.PageIndicator
-import com.poncegl.sigc.ui.feature.auth.model.onboardingPagesData
+import com.poncegl.sigc.ui.feature.onboarding.model.onboardingPagesData
 import com.poncegl.sigc.ui.theme.SIGCTheme
 import com.poncegl.sigc.ui.theme.SigcTheme
 
 @Composable
 fun OnboardingScreen(
-    onNavigateToHome: () -> Unit = {}
+    onFinishOnboarding: () -> Unit = {}
 ) {
     val appName = BuildConfig.APP_NAME
     var currentPageIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -94,7 +94,7 @@ fun OnboardingScreen(
     ) {
 
         OnboardingHeader(
-            onSkipClick = onNavigateToHome
+            onSkipClick = onFinishOnboarding
         )
 
         Column(
@@ -149,7 +149,7 @@ fun OnboardingScreen(
                 if (currentPageIndex < pages.size - 1) {
                     currentPageIndex++
                 } else {
-                    onNavigateToHome()
+                    onFinishOnboarding()
                 }
             }
         )
@@ -160,7 +160,7 @@ fun OnboardingScreen(
 @Composable
 fun OnboardingScreenPreview() {
     SIGCTheme(darkTheme = false) {
-        OnboardingScreen(onNavigateToHome = {
+        OnboardingScreen(onFinishOnboarding = {
             println("Navegar a Home")
         })
     }

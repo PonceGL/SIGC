@@ -17,7 +17,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name_flavor"
-            android:theme="@style/Theme.SIGC">
+            android:theme="@style/Theme.SIGC.Splash"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

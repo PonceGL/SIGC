@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.BuildConfig
+import com.poncegl.sigc.data.repository.UserPreferencesRepository
 import com.poncegl.sigc.ui.components.onboarding.NavigationButtons
 import com.poncegl.sigc.ui.components.onboarding.OnboardingContent
 import com.poncegl.sigc.ui.components.onboarding.OnboardingHeader
@@ -40,6 +42,7 @@ import com.poncegl.sigc.ui.components.shared.PageIndicator
 import com.poncegl.sigc.ui.feature.onboarding.model.onboardingPagesData
 import com.poncegl.sigc.ui.theme.SIGCTheme
 import com.poncegl.sigc.ui.theme.SigcTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
@@ -51,6 +54,16 @@ fun OnboardingScreen(
 
     val pages = onboardingPagesData
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val repository = UserPreferencesRepository(context)
+
+    fun completeOnboarding() {
+        scope.launch {
+            repository.saveOnboardingCompleted()
+            onFinishOnboarding()
+        }
+    }
 
     BackHandler(enabled = true) {
         if (currentPageIndex > 0) {
@@ -94,7 +107,9 @@ fun OnboardingScreen(
     ) {
 
         OnboardingHeader(
-            onSkipClick = onFinishOnboarding
+            onSkipClick = {
+                completeOnboarding()
+            }
         )
 
         Column(
@@ -149,7 +164,7 @@ fun OnboardingScreen(
                 if (currentPageIndex < pages.size - 1) {
                     currentPageIndex++
                 } else {
-                    onFinishOnboarding()
+                    completeOnboarding()
                 }
             }
         )

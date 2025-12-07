@@ -11,12 +11,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun SigcNavHost() {
+fun SigcNavHost(startDestination: String) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = OnboardingDestination.route
+        startDestination = startDestination
     ) {
         authGraph(navController)
 

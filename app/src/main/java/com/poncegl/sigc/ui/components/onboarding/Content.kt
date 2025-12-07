@@ -3,12 +3,14 @@ package com.poncegl.sigc.ui.components.onboarding
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,22 +19,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.R
+import com.poncegl.sigc.ui.components.onboarding.slider.Slider
+import com.poncegl.sigc.ui.components.shared.PageIndicator
+import com.poncegl.sigc.ui.feature.onboarding.model.OnboardingPage
 
 @Composable
 fun OnboardingContent(
-    painter: Painter,
-    title: String,
-    description: String,
-    iconColor: Color = MaterialTheme.colorScheme.primary
+    currentPageIndex: Int,
+    pages: List<OnboardingPage>,
+    prevAction: () -> Unit,
+    nextction: () -> Unit,
+    completeOnboarding: () -> Unit,
 ) {
     var scaleTarget by remember { mutableFloatStateOf(0.5f) }
     LaunchedEffect(Unit) {
@@ -47,36 +47,52 @@ fun OnboardingContent(
         ),
         label = "IconScaleAnimation"
     )
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier.graphicsLayer(
-                scaleX = scale,
-                scaleY = scale
-            )
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            SlideIcon(painter, color = iconColor)
+
+            OnboardingHeader(
+                onSkipClick = {
+                    completeOnboarding()
+                }
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Slider(
+                    currentPageIndex = currentPageIndex,
+                    pages = pages
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                PageIndicator(
+                    pageSize = pages.size,
+                    selectedPage = currentPageIndex
+                )
+            }
+
+            NavigationButtons(
+                showPrevious = currentPageIndex > 0,
+                isLast = currentPageIndex == pages.size - 1,
+                onPreviousClick = prevAction,
+                onNextClick = nextction
+            )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
     }
 }
 
@@ -84,8 +100,16 @@ fun OnboardingContent(
 @Composable
 fun OnboardingContentPreview() {
     OnboardingContent(
-        painter = painterResource(id = R.drawable.heart),
-        title = "Cuidado Integral",
-        description = "Centraliza toda la información de cuidados de tu paciente en un solo lugar. Medicamentos, signos vitales y más."
+        currentPageIndex = 0,
+        pages = listOf(
+            OnboardingPage(
+                imageRes = R.drawable.heart,
+                title = "Cuidado Integral",
+                description = "Centraliza toda la información de cuidados de tu paciente en un solo lugar. Medicamentos, signos vitales y más."
+            )
+        ),
+        prevAction = {},
+        nextction = {},
+        completeOnboarding = {}
     )
 }

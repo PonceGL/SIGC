@@ -31,7 +31,7 @@ fun OnboardingContent(
     currentPageIndex: Int,
     pages: List<OnboardingPage>,
     prevAction: () -> Unit,
-    nextction: () -> Unit,
+    nextAction: () -> Unit,
     completeOnboarding: () -> Unit,
 ) {
     var scaleTarget by remember { mutableFloatStateOf(0.5f) }
@@ -90,7 +90,7 @@ fun OnboardingContent(
                 showPrevious = currentPageIndex > 0,
                 isLast = currentPageIndex == pages.size - 1,
                 onPreviousClick = prevAction,
-                onNextClick = nextction
+                onNextClick = nextAction
             )
         }
     }
@@ -109,7 +109,7 @@ fun OnboardingContentPreview() {
             )
         ),
         prevAction = {},
-        nextction = {},
+        nextAction = {},
         completeOnboarding = {}
     )
 }

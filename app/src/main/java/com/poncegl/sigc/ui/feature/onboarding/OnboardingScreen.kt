@@ -90,7 +90,7 @@ fun OnboardingScreen(
         currentPageIndex = currentPageIndex,
         pages = pages,
         prevAction = { onPreviousClick() },
-        nextction = { onNextClick() },
+        nextAction = { onNextClick() },
         completeOnboarding = { completeOnboarding() }
     )
 

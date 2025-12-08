@@ -1,4 +1,4 @@
-package com.poncegl.sigc.ui.components.onboarding
+package com.poncegl.sigc.ui.components.onboarding.slider
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

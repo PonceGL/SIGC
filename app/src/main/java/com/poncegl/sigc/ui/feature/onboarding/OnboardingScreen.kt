@@ -96,7 +96,7 @@ fun OnboardingScreen(
 
 }
 
-@Preview(showSystemUi = true)
+@Preview(device = "id:pixel_5", apiLevel = 31, showSystemUi = true)
 @Composable
 fun OnboardingScreenPreview() {
     SIGCTheme(darkTheme = false) {

@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 val localProperties = Properties()
@@ -99,7 +101,6 @@ android {
         }
         create("prod") {
             dimension = "environment"
-            // Prod no suele llevar sufijos
         }
     }
 
@@ -162,6 +163,15 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.material3.window.size)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.auth)
+
+    // google services
+    implementation(libs.google.services)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

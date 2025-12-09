@@ -19,7 +19,7 @@ interface AuthRepository {
     /**
      * Registra un nuevo usuario.
      */
-    suspend fun signUp(email: String, password: String): Result<User>
+    suspend fun signUp(name: String, email: String, password: String): Result<User>
 
     /**
      * Cierra la sesión actual.

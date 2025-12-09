@@ -116,7 +116,11 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, isSubmitEnabled = false) }
-            val result = authRepository.signUp(currentState.email, currentState.password)
+            val result = authRepository.signUp(
+                currentState.name,
+                currentState.email,
+                currentState.password
+            )
             handleAuthResult(result)
         }
     }

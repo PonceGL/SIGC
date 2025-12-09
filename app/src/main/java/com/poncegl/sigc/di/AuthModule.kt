@@ -1,6 +1,7 @@
 package com.poncegl.sigc.di
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.poncegl.sigc.data.repository.FirebaseAuthRepository
 import com.poncegl.sigc.domain.repository.AuthRepository
 import dagger.Binds
@@ -25,6 +26,12 @@ abstract class AuthModule {
         @Singleton
         fun provideFirebaseAuth(): FirebaseAuth {
             return FirebaseAuth.getInstance()
+        }
+
+        @Provides
+        @Singleton
+        fun provideFirebaseFirestore(): FirebaseFirestore {
+            return FirebaseFirestore.getInstance()
         }
     }
 }

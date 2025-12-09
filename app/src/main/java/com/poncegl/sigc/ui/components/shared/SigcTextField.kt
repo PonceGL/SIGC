@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -68,6 +69,7 @@ fun SigcTextField(
             imeAction = imeAction
         ),
         visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
@@ -102,7 +104,6 @@ fun SigcTextField(
 @Composable
 private fun PreviewSigcTextFieldLight() {
     SIGCTheme(darkTheme = false) {
-        // Usamos Surface para que tome el color de fondo del tema (BackgroundLight)
         Surface {
             Column(modifier = Modifier.padding(16.dp)) {
                 SigcTextField(

@@ -55,7 +55,7 @@ fun SocialButtons(
         }
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             BrandedSocialButton(
@@ -119,7 +119,7 @@ private fun PreviewSocialButtonsStackedLight() {
 @Composable
 private fun PreviewSocialButtonsStackedDark() {
     SIGCTheme(darkTheme = true) {
-        Surface(color = MaterialTheme.colorScheme.background) { // Asegurar fondo oscuro
+        Surface(color = MaterialTheme.colorScheme.background) {
             SocialButtons(
                 modifier = Modifier.padding(16.dp),
                 onGoogleClick = {},

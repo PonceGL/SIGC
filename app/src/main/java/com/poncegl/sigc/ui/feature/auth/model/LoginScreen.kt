@@ -9,8 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poncegl.sigc.ui.components.login.LoginContent
-import com.poncegl.sigc.ui.feature.auth.login.LoginUiEvent
+import com.poncegl.sigc.ui.feature.auth.login.LoginUiEffect
 import com.poncegl.sigc.ui.feature.auth.login.LoginViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
@@ -25,10 +26,13 @@ fun LoginScreen(
         if (state.isLoginSuccessful) onLoginSuccess()
     }
 
-    LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let { error ->
-            snackbarHostState.showSnackbar(error)
-            viewModel.onEvent(LoginUiEvent.OnErrorDismissed)
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collectLatest { effect ->
+            when (effect) {
+                is LoginUiEffect.ShowError -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
         }
     }
 

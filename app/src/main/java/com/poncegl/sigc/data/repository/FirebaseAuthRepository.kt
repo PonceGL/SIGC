@@ -1,6 +1,8 @@
 package com.poncegl.sigc.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.poncegl.sigc.domain.model.User
 import com.poncegl.sigc.domain.repository.AuthRepository
@@ -32,7 +34,13 @@ class FirebaseAuthRepository @Inject constructor(
             val user = result.user?.toDomain() ?: throw Exception("El usuario autenticado es nulo")
             Result.success(user)
         } catch (e: Exception) {
-            Result.failure(e)
+            val safeErrorMessage = when (e) {
+                is FirebaseAuthInvalidUserException,
+                is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
+
+                else -> "Error al iniciar sesión. Intenta nuevamente."
+            }
+            Result.failure(Exception(safeErrorMessage))
         }
     }
 

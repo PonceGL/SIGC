@@ -30,6 +30,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -60,7 +61,17 @@ fun LoginContent(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(
@@ -78,8 +89,6 @@ fun LoginContent(
                 verticalArrangement = Arrangement.Center
             ) {
 
-                LoginHeader()
-                Spacer(modifier = Modifier.height(48.dp))
 
                 if (widthSizeClass == WindowWidthSizeClass.Compact) {
 
@@ -105,6 +114,12 @@ fun LoginContent(
                                 .padding(top = 16.dp),
                             verticalArrangement = Arrangement.Center
                         ) {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                LoginHeader()
+                            }
+
+                            Spacer(modifier = Modifier.height(48.dp))
+
                             SocialButtons(
                                 onGoogleClick = { onEvent(LoginUiEvent.OnGoogleSignInClicked) },
                                 onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
@@ -266,7 +281,7 @@ private fun LoginFormCard(
 private fun PreviewLoginScreenLight() {
     SIGCTheme(darkTheme = false) {
         LoginContent(
-            state = LoginUiState(email = "test@email.com", isEmailValid = true),
+            state = LoginUiState(email = "test@email.com", isEmailValid = false),
             widthSizeClass = WindowWidthSizeClass.Compact,
             snackbarHostState = remember { SnackbarHostState() },
             onEvent = {}

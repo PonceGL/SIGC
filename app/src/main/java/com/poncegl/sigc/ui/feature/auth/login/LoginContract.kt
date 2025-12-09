@@ -13,7 +13,6 @@ data class LoginUiState(
     val isEmailValid: Boolean = false,
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
     val isLoginSuccessful: Boolean = false
 )
 
@@ -28,5 +27,8 @@ sealed interface LoginUiEvent {
     data object OnForgotPasswordClicked : LoginUiEvent
     data object OnGoogleSignInClicked : LoginUiEvent
     data object OnFacebookSignInClicked : LoginUiEvent
-    data object OnErrorDismissed : LoginUiEvent
+}
+
+sealed interface LoginUiEffect {
+    data class ShowError(val message: String) : LoginUiEffect
 }

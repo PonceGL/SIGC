@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val DATASTORE_NAME = "user_preferences"
 private const val KEY_ONBOARDING_COMPLETED = "is_onboarding_completed"
 
 @Singleton

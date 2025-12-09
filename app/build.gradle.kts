@@ -163,6 +163,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.material3.window.size)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // firebase
     implementation(platform(libs.firebase.bom))

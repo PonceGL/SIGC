@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.poncegl.sigc.core.constants.FirestoreConstants
 import com.poncegl.sigc.domain.model.User
 import com.poncegl.sigc.domain.repository.AuthRepository
 import kotlinx.coroutines.channels.awaitClose
@@ -63,7 +64,7 @@ class FirebaseAuthRepository @Inject constructor(
                 "platform" to "android"
             )
 
-            firestore.collection("users") // TODO: Usar constante para el nombre de la colección
+            firestore.collection(FirestoreConstants.USERS_COLLECTION)
                 .document(firebaseUser.uid)
                 .set(userMap)
                 .await()

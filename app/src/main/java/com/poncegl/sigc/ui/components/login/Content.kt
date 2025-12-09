@@ -245,7 +245,7 @@ private fun LoginFormCard(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                enabled = !state.isLoading && showPasswordInput
+                enabled = state.isSubmitEnabled
             ) {
                 Text(
                     text = buttonText,

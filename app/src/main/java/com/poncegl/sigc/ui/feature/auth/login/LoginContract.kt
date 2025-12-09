@@ -13,7 +13,8 @@ data class LoginUiState(
     val isEmailValid: Boolean = false,
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val isLoginSuccessful: Boolean = false
+    val isLoginSuccessful: Boolean = false,
+    val isSubmitEnabled: Boolean = false
 )
 
 sealed interface LoginUiEvent {

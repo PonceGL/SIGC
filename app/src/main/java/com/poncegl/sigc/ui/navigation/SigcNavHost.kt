@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.poncegl.sigc.ui.feature.home.HomeScreen
 
 @Composable
 fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
@@ -20,6 +21,18 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
         startDestination = startDestination
     ) {
         authGraph(navController, windowSize)
+
+        composable(HomeDestination.route) {
+            HomeScreen(
+                onNavigateToLogin = {
+                    navController.navigate(LoginDestination.route) {
+                        popUpTo(HomeDestination.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
 
         composable(DashboardDestination.route) {
             PlaceholderScreen("Dashboard Principal")

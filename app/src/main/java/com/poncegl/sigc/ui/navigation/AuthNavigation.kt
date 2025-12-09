@@ -30,7 +30,7 @@ fun NavGraphBuilder.authGraph(navController: NavController, widthSizeClass: Wind
         LoginScreen(
             widthSizeClass = widthSizeClass,
             onLoginSuccess = {
-                navController.navigate(DashboardDestination.route) {
+                navController.navigate(HomeDestination.route) {
                     popUpTo(LoginDestination.route) { inclusive = true }
                 }
             }

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poncegl.sigc.data.repository.UserPreferencesRepository
 import com.poncegl.sigc.domain.repository.AuthRepository
-import com.poncegl.sigc.ui.navigation.DashboardDestination
+import com.poncegl.sigc.ui.navigation.HomeDestination
 import com.poncegl.sigc.ui.navigation.LoginDestination
 import com.poncegl.sigc.ui.navigation.OnboardingDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,7 +38,7 @@ class MainViewModel @Inject constructor(
                     _startDestination.value = OnboardingDestination.route
                 } else {
                     if (authRepository.isUserLoggedIn()) {
-                        _startDestination.value = DashboardDestination.route
+                        _startDestination.value = HomeDestination.route
                     } else {
                         _startDestination.value = LoginDestination.route
                     }

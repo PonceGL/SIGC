@@ -19,7 +19,7 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
         navController = navController,
         startDestination = startDestination
     ) {
-        authGraph(navController)
+        authGraph(navController, windowSize)
 
         composable(DashboardDestination.route) {
             PlaceholderScreen("Dashboard Principal")

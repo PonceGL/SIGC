@@ -1,28 +1,41 @@
 package com.poncegl.sigc.ui.feature.auth.model
 
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import com.poncegl.sigc.ui.components.login.Content
-import com.poncegl.sigc.ui.theme.SIGCTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.poncegl.sigc.ui.components.login.LoginContent
+import com.poncegl.sigc.ui.feature.auth.login.LoginUiEvent
+import com.poncegl.sigc.ui.feature.auth.login.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onNavigateToSignUp: () -> Unit,
-    onNavigateToDashboard: () -> Unit
+    widthSizeClass: WindowWidthSizeClass,
+    onLoginSuccess: () -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
-    Content(
-        onNavigateToSignUp = onNavigateToSignUp,
-        onNavigateToDashboard = onNavigateToDashboard
-    )
-}
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-@Preview(device = "id:pixel_5", apiLevel = 31, showSystemUi = true)
-@Composable
-fun LoginScreenPreview() {
-    SIGCTheme {
-        LoginScreen(
-            onNavigateToSignUp = {},
-            onNavigateToDashboard = {}
-        )
+    LaunchedEffect(state.isLoginSuccessful) {
+        if (state.isLoginSuccessful) onLoginSuccess()
     }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.onEvent(LoginUiEvent.OnErrorDismissed)
+        }
+    }
+
+    LoginContent(
+        state = state,
+        widthSizeClass = widthSizeClass,
+        snackbarHostState = snackbarHostState,
+        onEvent = viewModel::onEvent
+    )
 }

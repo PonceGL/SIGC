@@ -3,6 +3,7 @@ package com.poncegl.sigc.ui.navigation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -11,7 +12,7 @@ import androidx.navigation.compose.composable
 import com.poncegl.sigc.ui.feature.auth.model.LoginScreen
 import com.poncegl.sigc.ui.feature.onboarding.OnboardingScreen
 
-fun NavGraphBuilder.authGraph(navController: NavController) {
+fun NavGraphBuilder.authGraph(navController: NavController, widthSizeClass: WindowWidthSizeClass) {
 
     composable(route = OnboardingDestination.route) {
         OnboardingScreen(
@@ -27,10 +28,8 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
 
     composable(route = LoginDestination.route) {
         LoginScreen(
-            onNavigateToSignUp = {
-                navController.navigate(SignUpDestination.route)
-            },
-            onNavigateToDashboard = {
+            widthSizeClass = widthSizeClass,
+            onLoginSuccess = {
                 navController.navigate(DashboardDestination.route) {
                     popUpTo(LoginDestination.route) { inclusive = true }
                 }

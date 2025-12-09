@@ -10,7 +10,6 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.poncegl.sigc.data.repository.UserPreferencesRepository
 import com.poncegl.sigc.ui.MainViewModel
 import com.poncegl.sigc.ui.navigation.SigcNavHost
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -18,18 +17,15 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val viewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
-        enableEdgeToEdge()
-
         super.onCreate(savedInstanceState)
 
-        val userPreferencesRepository = UserPreferencesRepository(applicationContext)
+        enableEdgeToEdge()
 
-        val viewModel: MainViewModel by viewModels {
-            MainViewModel.provideFactory(userPreferencesRepository)
-        }
 
         splashScreen.setKeepOnScreenCondition {
             viewModel.isLoading.value

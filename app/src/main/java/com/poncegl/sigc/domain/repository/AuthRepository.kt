@@ -10,6 +10,12 @@ interface AuthRepository {
      * Emite null si no hay sesión activa.
      */
     val currentUser: Flow<User?>
+
+    /**
+     * Verifica si existe una sesión activa actualmente.
+     */
+    fun isUserLoggedIn(): Boolean
+
     /**
      * Inicia sesión con correo y contraseña.
      * Retorna un Result que contiene el User o la excepción.

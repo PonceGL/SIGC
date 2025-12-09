@@ -34,6 +34,10 @@ class FirebaseAuthRepository @Inject constructor(
         }
     }
 
+    override fun isUserLoggedIn(): Boolean {
+        return firebaseAuth.currentUser != null
+    }
+
     override suspend fun login(email: String, password: String): Result<User> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -77,18 +78,18 @@ fun LoginContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .imePadding(),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(24.dp),
+                    .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
-
 
                 if (widthSizeClass == WindowWidthSizeClass.Compact) {
 
@@ -103,7 +104,7 @@ fun LoginContent(
                     Row(
                         modifier = Modifier.widthIn(max = 900.dp),
                         horizontalArrangement = Arrangement.spacedBy(48.dp),
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             LoginFormCard(state, onEvent)
@@ -112,13 +113,8 @@ fun LoginContent(
                             modifier = Modifier
                                 .weight(0.8f)
                                 .padding(top = 16.dp),
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
                         ) {
-                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                LoginHeader()
-                            }
-
-                            Spacer(modifier = Modifier.height(48.dp))
 
                             SocialButtons(
                                 onGoogleClick = { onEvent(LoginUiEvent.OnGoogleSignInClicked) },

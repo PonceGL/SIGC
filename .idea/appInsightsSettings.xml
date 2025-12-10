@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.poncegl.sigc.dev" />
+                  <option name="mobileSdkAppId" value="1:1052819936720:android:75cf3a051e9ce82fbe15d5" />
+                  <option name="projectId" value="sigc-cf3bb" />
+                  <option name="projectNumber" value="1052819936720" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -15,8 +15,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.poncegl.sigc.BuildConfig
-import com.poncegl.sigc.data.repository.UserPreferencesRepository
 import com.poncegl.sigc.ui.components.onboarding.OnboardingContent
 import com.poncegl.sigc.ui.feature.onboarding.model.onboardingPagesData
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -24,7 +24,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
-    onFinishOnboarding: () -> Unit = {}
+    onFinishOnboarding: () -> Unit = {},
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val appName = BuildConfig.APP_NAME
     var currentPageIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -34,12 +35,11 @@ fun OnboardingScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val repository = UserPreferencesRepository(context)
-
     fun completeOnboarding() {
         scope.launch {
-            repository.saveOnboardingCompleted()
-            onFinishOnboarding()
+            viewModel.completeOnboarding {
+                onFinishOnboarding()
+            }
         }
     }
 
@@ -96,7 +96,7 @@ fun OnboardingScreen(
 
 }
 
-@Preview(showSystemUi = true)
+@Preview(device = "id:pixel_5", apiLevel = 31, showSystemUi = true)
 @Composable
 fun OnboardingScreenPreview() {
     SIGCTheme(darkTheme = false) {

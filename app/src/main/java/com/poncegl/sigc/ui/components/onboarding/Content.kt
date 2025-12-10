@@ -1,8 +1,5 @@
 package com.poncegl.sigc.ui.components.onboarding
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,11 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,19 +26,6 @@ fun OnboardingContent(
     nextAction: () -> Unit,
     completeOnboarding: () -> Unit,
 ) {
-    var scaleTarget by remember { mutableFloatStateOf(0.5f) }
-    LaunchedEffect(Unit) {
-        scaleTarget = 1f
-    }
-
-    val scale by animateFloatAsState(
-        targetValue = scaleTarget,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "IconScaleAnimation"
-    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

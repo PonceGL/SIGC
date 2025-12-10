@@ -31,6 +31,10 @@ object SignUpDestination : SigcDestination {
 }
 
 // --- Flujo Principal (App) ---
+object HomeDestination : SigcDestination {
+    override val route = "home"
+}
+
 object DashboardDestination : SigcDestination {
     override val route = "dashboard"
 }

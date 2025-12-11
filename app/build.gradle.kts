@@ -52,7 +52,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_KEY", "\"UNSET\"")
+        buildConfigField("String", "SERVER_CLIENT_ID", "\"UNSET\"")
 
         vectorDrawables {
             useSupportLibrary = true
@@ -129,7 +129,7 @@ android {
         }
 
         val secretsKeys = listOf(
-            "API_KEY",
+            "SERVER_CLIENT_ID",
             "APP_NAME"
         )
 

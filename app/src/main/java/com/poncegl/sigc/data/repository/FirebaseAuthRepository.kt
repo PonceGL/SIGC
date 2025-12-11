@@ -1,13 +1,21 @@
 package com.poncegl.sigc.data.repository
 
+import android.content.Context
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.poncegl.sigc.BuildConfig
 import com.poncegl.sigc.core.constants.FirestoreConstants
 import com.poncegl.sigc.domain.model.User
 import com.poncegl.sigc.domain.repository.AuthRepository
@@ -19,7 +27,8 @@ import javax.inject.Inject
 
 class FirebaseAuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val credentialManager: CredentialManager
 ) : AuthRepository {
 
     override val currentUser: Flow<User?> = callbackFlow {
@@ -85,6 +94,61 @@ class FirebaseAuthRepository @Inject constructor(
             }
             // TODO: Si falla Firestore pero Auth tuvo éxito, idealmente deberíamos borrar el usuario de Auth (Rollback) para no dejar cuentas "zombies" sin datos. Por ahora lo manejamos como error general.
             Result.failure(Exception(safeErrorMessage))
+        }
+    }
+
+    override suspend fun signInWithGoogle(context: Context): Result<User> {
+        return try {
+            val webClientId = BuildConfig.SERVER_CLIENT_ID
+
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(true)
+                .setServerClientId(webClientId)
+                .setAutoSelectEnabled(true)
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+
+            val result = credentialManager.getCredential(
+                request = request,
+                context = context
+            )
+
+            val credential = result.credential
+            if (credential !is GoogleIdTokenCredential) {
+                throw Exception("Tipo de credencial no soportado")
+            }
+
+            val googleIdToken = credential.idToken
+
+            val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
+            val authResult = firebaseAuth.signInWithCredential(authCredential).await()
+            val firebaseUser = authResult.user ?: throw Exception("Error al autenticar con Google")
+
+            val userMap = hashMapOf(
+                "id" to firebaseUser.uid,
+                "displayName" to (firebaseUser.displayName ?: "Usuario Google"),
+                "email" to (firebaseUser.email ?: ""),
+                "photoUrl" to (firebaseUser.photoUrl?.toString()),
+                "lastLogin" to FieldValue.serverTimestamp(),
+                "platform" to "android"
+            )
+
+            firestore.collection(FirestoreConstants.USERS_COLLECTION)
+                .document(firebaseUser.uid)
+                .set(userMap, SetOptions.merge())
+                .await()
+
+            Result.success(firebaseUser.toDomain())
+
+        } catch (e: Exception) {
+            if (e is androidx.credentials.exceptions.GetCredentialCancellationException) {
+                Result.failure(Exception("Inicio de sesión cancelado."))
+            } else {
+                Result.failure(e)
+            }
         }
     }
 

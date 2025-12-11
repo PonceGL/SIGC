@@ -82,6 +82,7 @@ fun LoginContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(vertical = 10.dp)
                 .imePadding(),
             contentAlignment = Alignment.Center
         ) {
@@ -91,11 +92,14 @@ fun LoginContent(
                     .verticalScroll(scrollState)
                     .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Top,
             ) {
 
-                if (widthSizeClass == WindowWidthSizeClass.Compact) {
+                LoginHeader()
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (widthSizeClass == WindowWidthSizeClass.Compact) {
                     LoginFormCard(state, onEvent)
                     Spacer(modifier = Modifier.height(24.dp))
                     if (state.authMode == AuthMode.LOGIN) {

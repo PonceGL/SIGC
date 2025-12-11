@@ -26,8 +26,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+//import androidx.compose.material3.Card
+//import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -148,14 +148,14 @@ private fun LoginFormCard(
     state: LoginUiState,
     onEvent: (LoginUiEvent) -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+//    Card(
+//        shape = RoundedCornerShape(16.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+//        ),
+//        modifier = Modifier.fillMaxWidth()
+//    ) {
+        Column(modifier = Modifier.padding(vertical = 20.dp)) {
             AuthModeToggle(
                 currentMode = state.authMode,
                 onModeSelected = { onEvent(LoginUiEvent.OnModeChange(it)) }
@@ -214,6 +214,7 @@ private fun LoginFormCard(
 
                     if (state.authMode == AuthMode.REGISTER) {
                         Spacer(modifier = Modifier.height(16.dp))
+
                         SigcTextField(
                             value = state.confirmPassword,
                             onValueChange = { onEvent(LoginUiEvent.OnConfirmPasswordChanged(it)) },
@@ -225,14 +226,23 @@ private fun LoginFormCard(
                             onTogglePassword = { onEvent(LoginUiEvent.OnTogglePasswordVisibility) },
                             enabled = !state.isLoading
                         )
+
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Al registrarte aceptas nuestros Términos de Servicio y Política de Privacidad.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
+
+                        TextButton(
+                            onClick = {
+                                // TODO: Navegar a Términos y Política
+                            },
                             modifier = Modifier.fillMaxWidth()
-                        )
+                        ) {
+                            Text(
+                                text = "Al registrarte aceptas nuestros Términos de Servicio y Política de Privacidad.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
@@ -267,13 +277,14 @@ private fun LoginFormCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "¿Olvidaste tu contraseña?",
+                        text = "¿Olvidaste tu contraseña?",
+                        textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
-    }
+//    }
 }
 
 

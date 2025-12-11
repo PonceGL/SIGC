@@ -1,4 +1,4 @@
-package com.poncegl.sigc.ui.feature.auth.model
+package com.poncegl.sigc.ui.feature.auth
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass

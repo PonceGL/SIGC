@@ -1,5 +1,7 @@
 package com.poncegl.sigc.ui.feature.auth.login
 
+import android.content.Context
+
 enum class AuthMode {
     LOGIN, REGISTER
 }
@@ -26,7 +28,7 @@ sealed interface LoginUiEvent {
     data object OnTogglePasswordVisibility : LoginUiEvent
     data object OnSubmitClicked : LoginUiEvent
     data object OnForgotPasswordClicked : LoginUiEvent
-    data object OnGoogleSignInClicked : LoginUiEvent
+    data class OnGoogleSignInClicked(val context: Context) : LoginUiEvent
     data object OnFacebookSignInClicked : LoginUiEvent
 }
 

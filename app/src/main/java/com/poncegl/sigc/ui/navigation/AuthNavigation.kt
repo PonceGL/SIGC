@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.poncegl.sigc.ui.feature.auth.model.LoginScreen
+import com.poncegl.sigc.ui.feature.auth.LoginScreen
 import com.poncegl.sigc.ui.feature.onboarding.OnboardingScreen
 
 fun NavGraphBuilder.authGraph(navController: NavController, widthSizeClass: WindowWidthSizeClass) {
@@ -37,7 +37,6 @@ fun NavGraphBuilder.authGraph(navController: NavController, widthSizeClass: Wind
         )
     }
 
-    // 3. Pantalla de Registro (Placeholder temporal)
     composable(route = SignUpDestination.route) {
         SignUpRoutePlaceholder()
     }

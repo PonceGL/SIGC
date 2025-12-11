@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
 
 class FirebaseAuthRepository @Inject constructor(
@@ -100,11 +101,13 @@ class FirebaseAuthRepository @Inject constructor(
     override suspend fun signInWithGoogle(context: Context): Result<User> {
         return try {
             val webClientId = BuildConfig.SERVER_CLIENT_ID
+            val hashedNonce = UUID.randomUUID().toString()
 
             val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(true)
+                .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(webClientId)
-                .setAutoSelectEnabled(true)
+                .setNonce(hashedNonce)
+                .setAutoSelectEnabled(false)
                 .build()
 
             val request = GetCredentialRequest.Builder()
@@ -117,11 +120,29 @@ class FirebaseAuthRepository @Inject constructor(
             )
 
             val credential = result.credential
-            if (credential !is GoogleIdTokenCredential) {
-                throw Exception("Tipo de credencial no soportado")
-            }
 
-            val googleIdToken = credential.idToken
+            val googleIdToken = when {
+
+                credential is GoogleIdTokenCredential -> {
+                    credential.idToken
+                }
+
+                credential is androidx.credentials.CustomCredential &&
+                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
+                    try {
+
+                        val googleIdTokenCredential =
+                            GoogleIdTokenCredential.createFrom(credential.data)
+                        googleIdTokenCredential.idToken
+                    } catch (e: Exception) {
+                        throw Exception("Error al leer los datos de Google: ${e.message}")
+                    }
+                }
+
+                else -> {
+                    throw Exception("Tipo de credencial no soportado: ${credential.javaClass.name}")
+                }
+            }
 
             val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
             val authResult = firebaseAuth.signInWithCredential(authCredential).await()

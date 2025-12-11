@@ -72,8 +72,22 @@ class LoginViewModel @Inject constructor(
             is LoginUiEvent.OnSubmitClicked -> {
                 if (_uiState.value.authMode == AuthMode.LOGIN) performLogin() else performRegister()
             }
-            // TODO: Implementar luego los clicks de Google/FB/Olvidé contraseña
+
+            is LoginUiEvent.OnGoogleSignInClicked -> {
+                performGoogleSignIn(event.context)
+            }
+            // TODO: Implementar luego los clicks de Facebook/Olvidé contraseña
             else -> {}
+        }
+    }
+
+    private fun performGoogleSignIn(context: android.content.Context) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            val result = authRepository.signInWithGoogle(context)
+
+            handleAuthResult(result)
         }
     }
 

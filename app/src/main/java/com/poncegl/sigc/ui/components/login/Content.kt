@@ -41,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +61,8 @@ fun LoginContent(
     onEvent: (LoginUiEvent) -> Unit
 ) {
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
 
     Scaffold(
         snackbarHost = {
@@ -96,7 +99,9 @@ fun LoginContent(
                     LoginFormCard(state, onEvent)
                     Spacer(modifier = Modifier.height(24.dp))
                     SocialButtons(
-                        onGoogleClick = { onEvent(LoginUiEvent.OnGoogleSignInClicked) },
+                        onGoogleClick = {
+                            onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
+                        },
                         onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
                     )
                 } else {
@@ -117,7 +122,9 @@ fun LoginContent(
                         ) {
 
                             SocialButtons(
-                                onGoogleClick = { onEvent(LoginUiEvent.OnGoogleSignInClicked) },
+                                onGoogleClick = {
+                                    onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
+                                },
                                 onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
                             )
                         }

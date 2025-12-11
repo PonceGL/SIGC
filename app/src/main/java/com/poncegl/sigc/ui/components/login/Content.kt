@@ -98,12 +98,14 @@ fun LoginContent(
 
                     LoginFormCard(state, onEvent)
                     Spacer(modifier = Modifier.height(24.dp))
-                    SocialButtons(
-                        onGoogleClick = {
-                            onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
-                        },
-                        onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
-                    )
+                    if (state.authMode == AuthMode.LOGIN) {
+                        SocialButtons(
+                            onGoogleClick = {
+                                onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
+                            },
+                            onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
+                        )
+                    }
                 } else {
 
                     Row(
@@ -120,13 +122,14 @@ fun LoginContent(
                                 .padding(top = 16.dp),
                             verticalArrangement = Arrangement.Center,
                         ) {
-
-                            SocialButtons(
-                                onGoogleClick = {
-                                    onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
-                                },
-                                onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
-                            )
+                            if (state.authMode == AuthMode.LOGIN) {
+                                SocialButtons(
+                                    onGoogleClick = {
+                                        onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
+                                    },
+                                    onFacebookClick = { onEvent(LoginUiEvent.OnFacebookSignInClicked) },
+                                )
+                            }
                         }
                     }
                 }

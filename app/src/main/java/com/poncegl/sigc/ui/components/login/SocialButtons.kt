@@ -59,17 +59,6 @@ fun SocialButtons(
             modifier = Modifier.fillMaxWidth()
         ) {
             BrandedSocialButton(
-                text = "Continue with Facebook",
-                containerColor = Color(0xFF1877F2),
-                contentColor = Color.White,
-                iconPlaceholder = {
-                    // TODO: Reemplazar con Image(painterResource(R.drawable.ic_facebook), ...)
-                    Text("f", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White)
-                },
-                onClick = onFacebookClick
-            )
-
-            BrandedSocialButton(
                 text = "Continue with Google",
                 containerColor = Color.White,
                 contentColor = Color(0xFF757575),
@@ -87,6 +76,18 @@ fun SocialButtons(
                 },
                 onClick = onGoogleClick
             )
+
+//            BrandedSocialButton(
+//                text = "Continue with Facebook",
+//                containerColor = Color(0xFF1877F2),
+//                contentColor = Color.White,
+//                iconPlaceholder = {
+//                    // TODO: Reemplazar con Image(painterResource(R.drawable.ic_facebook), ...)
+//                    Text("f", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White)
+//                },
+//                onClick = onFacebookClick
+//            )
+
         }
     }
 }

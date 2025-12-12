@@ -1,5 +1,7 @@
 package com.poncegl.sigc.di
 
+import android.content.Context
+import androidx.credentials.CredentialManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.poncegl.sigc.data.repository.FirebaseAuthRepository
@@ -8,6 +10,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -32,6 +35,14 @@ abstract class AuthModule {
         @Singleton
         fun provideFirebaseFirestore(): FirebaseFirestore {
             return FirebaseFirestore.getInstance()
+        }
+
+        @Provides
+        @Singleton
+        fun provideCredentialManager(
+            @ApplicationContext context: Context
+        ): CredentialManager {
+            return CredentialManager.create(context)
         }
     }
 }

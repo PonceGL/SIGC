@@ -1,5 +1,6 @@
 package com.poncegl.sigc.domain.repository
 
+import android.content.Context
 import com.poncegl.sigc.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
@@ -26,6 +27,8 @@ interface AuthRepository {
      * Registra un nuevo usuario.
      */
     suspend fun signUp(name: String, email: String, password: String): Result<User>
+
+    suspend fun signInWithGoogle(context: Context): Result<User>
 
     /**
      * Cierra la sesión actual.

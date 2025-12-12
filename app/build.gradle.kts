@@ -52,7 +52,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_KEY", "\"UNSET\"")
+        buildConfigField("String", "SERVER_CLIENT_ID", "\"UNSET\"")
 
         vectorDrawables {
             useSupportLibrary = true
@@ -129,7 +129,7 @@ android {
         }
 
         val secretsKeys = listOf(
-            "API_KEY",
+            "SERVER_CLIENT_ID",
             "APP_NAME"
         )
 
@@ -176,6 +176,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.material3.window.size)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.kotlinx.coroutines.play.services)
 
     // firebase
@@ -187,6 +189,7 @@ dependencies {
 
     // google services
     implementation(libs.google.services)
+    implementation(libs.googleid)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

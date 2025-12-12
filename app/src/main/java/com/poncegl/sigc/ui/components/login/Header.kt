@@ -1,73 +1,70 @@
 package com.poncegl.sigc.ui.components.login
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.R
+import com.poncegl.sigc.ui.feature.auth.login.AuthMode
+import com.poncegl.sigc.ui.feature.auth.login.LoginUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
 @Composable
 fun LoginHeader(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    state: LoginUiState,
+    background: Color = MaterialTheme.colorScheme.background
 ) {
-    Row(
+    Column(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // TODO: Replace with actual logo
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(64.dp),
-            shadowElevation = 4.dp
+            color = background,
+            modifier = Modifier.size(70.dp),
+//            shadowElevation = 4.dp
         ) {
+
             Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Logo SIGC",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(32.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.nurse),
+                    contentDescription = "App Logo",
+                    modifier = Modifier.size(70.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
+
         }
 
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = "SIGC",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Text(
-                text = "Sistema Integral de Gestión de Cuidados",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
+        Text(
+            text = if (state.authMode == AuthMode.LOGIN) "¡Bienvenido!" else "Crea tu cuenta",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -84,7 +81,8 @@ private fun PreviewLoginHeaderLight() {
             LoginHeader(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(24.dp),
+                state = LoginUiState(authMode = AuthMode.LOGIN)
             )
         }
     }
@@ -104,7 +102,8 @@ private fun PreviewLoginHeaderDark() {
             LoginHeader(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(24.dp),
+                state = LoginUiState(authMode = AuthMode.LOGIN)
             )
         }
     }

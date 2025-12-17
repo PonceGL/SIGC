@@ -1,11 +1,13 @@
 package com.poncegl.sigc.ui.components.login
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -15,10 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.poncegl.sigc.R
 import com.poncegl.sigc.ui.components.shared.BrandedSocialButton
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
@@ -59,26 +62,23 @@ fun SocialButtons(
             modifier = Modifier.fillMaxWidth()
         ) {
             BrandedSocialButton(
-                text = "Continue with Google",
+                text = "Iniciar sesión con Google",
                 containerColor = Color.White,
                 contentColor = Color(0xFF757575),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
                 iconPlaceholder = {
-                    // TODO: Reemplazar con Image(painterResource(R.drawable.ic_google_colored), ...)
-                    Row {
-                        Text(
-                            "G",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp,
-                            color = Color(0xFF4285F4)
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.google_icon),
+                        contentDescription = "Google Logo",
+                        modifier = Modifier.size(20.dp),
+                        contentScale = ContentScale.Fit
+                    )
                 },
                 onClick = onGoogleClick
             )
 
 //            BrandedSocialButton(
-//                text = "Continue with Facebook",
+//                text = "Iniciar sesión con Facebook",
 //                containerColor = Color(0xFF1877F2),
 //                contentColor = Color.White,
 //                iconPlaceholder = {

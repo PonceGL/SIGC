@@ -29,6 +29,9 @@ fun NavGraphBuilder.authGraph(navController: NavController, widthSizeClass: Wind
     composable(route = LoginDestination.route) {
         LoginScreen(
             widthSizeClass = widthSizeClass,
+            onNavigateToLegals = {
+                navController.navigate(LegalsDestination.route)
+            },
             onLoginSuccess = {
                 navController.navigate(HomeDestination.route) {
                     popUpTo(LoginDestination.route) { inclusive = true }

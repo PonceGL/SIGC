@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.poncegl.sigc.ui.feature.home.HomeScreen
+import com.poncegl.sigc.ui.feature.legals.LegalsScreen
 
 @Composable
 fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
@@ -21,6 +22,15 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
         startDestination = startDestination
     ) {
         authGraph(navController, windowSize)
+
+        composable(LegalsDestination.route) {
+            LegalsScreen(
+                areTerms = false,
+                onNavigateToLogin = {
+                    navController.navigate(LoginDestination.route)
+                }
+            )
+        }
 
         composable(HomeDestination.route) {
             HomeScreen(

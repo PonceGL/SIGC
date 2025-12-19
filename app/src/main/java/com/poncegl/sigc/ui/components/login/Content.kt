@@ -58,7 +58,8 @@ fun LoginContent(
     state: LoginUiState,
     widthSizeClass: WindowWidthSizeClass,
     snackbarHostState: SnackbarHostState,
-    onEvent: (LoginUiEvent) -> Unit
+    onEvent: (LoginUiEvent) -> Unit,
+    onNavigateToLegals: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -100,7 +101,7 @@ fun LoginContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 if (widthSizeClass == WindowWidthSizeClass.Compact) {
-                    LoginFormCard(state, onEvent)
+                    LoginFormCard(state, onEvent, onNavigateToLegals)
                     Spacer(modifier = Modifier.height(24.dp))
                     if (state.authMode == AuthMode.LOGIN) {
                         SocialButtons(
@@ -118,7 +119,7 @@ fun LoginContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
-                            LoginFormCard(state, onEvent)
+                            LoginFormCard(state, onEvent, onNavigateToLegals)
                         }
                         Column(
                             modifier = Modifier
@@ -149,7 +150,8 @@ fun LoginContent(
 @Composable
 private fun LoginFormCard(
     state: LoginUiState,
-    onEvent: (LoginUiEvent) -> Unit
+    onEvent: (LoginUiEvent) -> Unit,
+    onNavigateToLegals: () -> Unit
 ) {
 //    Card(
 //        shape = RoundedCornerShape(16.dp),
@@ -234,7 +236,7 @@ private fun LoginFormCard(
 
                     TextButton(
                         onClick = {
-                            // TODO: Navegar a Términos y Política
+                            onNavigateToLegals()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -304,7 +306,8 @@ private fun PreviewLoginScreenLight() {
             state = LoginUiState(email = "test@email.com", isEmailValid = false),
             widthSizeClass = WindowWidthSizeClass.Compact,
             snackbarHostState = remember { SnackbarHostState() },
-            onEvent = {}
+            onEvent = {},
+            onNavigateToLegals = {}
         )
     }
 }
@@ -323,7 +326,8 @@ private fun PreviewLoginScreenDarkRegister() {
             state = LoginUiState(authMode = AuthMode.REGISTER),
             widthSizeClass = WindowWidthSizeClass.Compact,
             snackbarHostState = remember { SnackbarHostState() },
-            onEvent = {}
+            onEvent = {},
+            onNavigateToLegals = {}
         )
     }
 }
@@ -342,7 +346,8 @@ private fun PreviewLoginScreenTablet() {
             state = LoginUiState(authMode = AuthMode.LOGIN, isEmailValid = true),
             widthSizeClass = WindowWidthSizeClass.Expanded,
             snackbarHostState = remember { SnackbarHostState() },
-            onEvent = {}
+            onEvent = {},
+            onNavigateToLegals = {}
         )
     }
 }

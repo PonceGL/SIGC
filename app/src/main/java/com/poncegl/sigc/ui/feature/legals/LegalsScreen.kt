@@ -1,21 +1,16 @@
 package com.poncegl.sigc.ui.feature.legals
 
-import com.poncegl.sigc.ui.feature.home.HomeUiEvent
-import com.poncegl.sigc.ui.feature.home.HomeViewModel
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,16 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.flow.collectLatest
+import com.poncegl.sigc.core.constants.Legals
+import com.poncegl.sigc.ui.components.legals.LegalsModeToggle
 
 @Composable
-fun LegalsScreen(
-    areTerms: Boolean,
-    onNavigateToLogin: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
-) {
+fun LegalsScreen() {
 
+    var isTerms by remember { mutableStateOf(true) }
+    val scrollState = rememberScrollState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -47,14 +40,30 @@ fun LegalsScreen(
                 .padding(vertical = 10.dp)
                 .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = if (areTerms) "Términos de Servicio" else "Política de Privacidad.",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+
+            LegalsModeToggle(
+                isTerms = isTerms,
+                changeMode = {
+                    isTerms = !isTerms
+                }
             )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            ) {
+                Text(
+                    text = if (isTerms) Legals.TERMS else Legals.PRIVACY,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+            }
+
 
         }
     }

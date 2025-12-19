@@ -24,12 +24,7 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
         authGraph(navController, windowSize)
 
         composable(LegalsDestination.route) {
-            LegalsScreen(
-                areTerms = false,
-                onNavigateToLogin = {
-                    navController.navigate(LoginDestination.route)
-                }
-            )
+            LegalsScreen()
         }
 
         composable(HomeDestination.route) {

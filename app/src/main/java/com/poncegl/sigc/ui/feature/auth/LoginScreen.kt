@@ -15,9 +15,10 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel = hiltViewModel(),
     widthSizeClass: WindowWidthSizeClass,
     onLoginSuccess: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
+    onNavigateToLegals: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -40,6 +41,7 @@ fun LoginScreen(
         state = state,
         widthSizeClass = widthSizeClass,
         snackbarHostState = snackbarHostState,
-        onEvent = viewModel::onEvent
+        onEvent = viewModel::onEvent,
+        onNavigateToLegals = onNavigateToLegals
     )
 }

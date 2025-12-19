@@ -15,6 +15,11 @@ interface SigcDestination {
         get() = emptyList()
 }
 
+// --- Flujo de Utilidades ---
+object LegalsDestination : SigcDestination {
+    override val route = "legals"
+}
+
 // --- Flujo de Autenticación ---
 object OnboardingDestination : SigcDestination {
     override val route = "onboarding"

@@ -1,7 +1,5 @@
 package com.poncegl.sigc.ui.components.login
 
-//import androidx.compose.material3.Card
-//import androidx.compose.material3.CardDefaults
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +32,7 @@ import com.poncegl.sigc.ui.feature.auth.login.AuthMode
 import com.poncegl.sigc.ui.feature.auth.login.LoginUiEvent
 import com.poncegl.sigc.ui.feature.auth.login.LoginUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
+import com.poncegl.sigc.ui.theme.SigcTheme
 
 @Composable
 fun LoginContent(
@@ -50,10 +49,20 @@ fun LoginContent(
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
+                val visuals = data.visuals as? SigcSnackbarVisuals
+                val type = visuals?.type ?: SnackbarType.ERROR
+
+                val (containerColor, contentColor) = when (type) {
+                    SnackbarType.ERROR -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+                    SnackbarType.SUCCESS -> SigcTheme.colors.success to MaterialTheme.colorScheme.onPrimary
+                    SnackbarType.WARNING -> SigcTheme.colors.warning to MaterialTheme.colorScheme.onPrimary
+                    SnackbarType.INFO -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                }
+
                 Snackbar(
                     snackbarData = data,
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    containerColor = containerColor,
+                    contentColor = contentColor,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(16.dp)
                 )

@@ -3,7 +3,9 @@ package com.poncegl.sigc.ui.feature.auth.login
 import android.content.Context
 
 enum class AuthMode {
-    LOGIN, REGISTER
+    LOGIN,
+    REGISTER,
+    RECOVER_PASSWORD
 }
 
 data class LoginUiState(
@@ -16,7 +18,8 @@ data class LoginUiState(
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
     val isLoginSuccessful: Boolean = false,
-    val isSubmitEnabled: Boolean = false
+    val isSubmitEnabled: Boolean = false,
+    val isRecoveryEmailSent: Boolean = false
 )
 
 sealed interface LoginUiEvent {
@@ -27,11 +30,11 @@ sealed interface LoginUiEvent {
     data class OnConfirmPasswordChanged(val value: String) : LoginUiEvent
     data object OnTogglePasswordVisibility : LoginUiEvent
     data object OnSubmitClicked : LoginUiEvent
-    data object OnForgotPasswordClicked : LoginUiEvent
     data class OnGoogleSignInClicked(val context: Context) : LoginUiEvent
     data object OnFacebookSignInClicked : LoginUiEvent
 }
 
 sealed interface LoginUiEffect {
     data class ShowError(val message: String) : LoginUiEffect
+    data class ShowMessage(val message: String) : LoginUiEffect
 }

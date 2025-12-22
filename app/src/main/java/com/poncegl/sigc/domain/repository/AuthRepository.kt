@@ -31,6 +31,11 @@ interface AuthRepository {
     suspend fun signInWithGoogle(context: Context): Result<User>
 
     /**
+     * Envía un correo electrónico para restablecer la contraseña.
+     */
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+
+    /**
      * Cierra la sesión actual.
      */
     suspend fun logout()

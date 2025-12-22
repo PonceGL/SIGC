@@ -159,7 +159,7 @@ class FirebaseAuthRepository @Inject constructor(
                 userRepository.saveUser(domainUser)
             } else {
                 userRepository.updateLastLogin(domainUser.id, Instant.now())
-                
+
                 userRepository.updateUserProfile(
                     domainUser.id,
                     mapOf(
@@ -177,6 +177,17 @@ class FirebaseAuthRepository @Inject constructor(
             } else {
                 Result.failure(e)
             }
+        }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+            Result.failure(Exception("Si el correo está registrado, recibirás las instrucciones."))
         }
     }
 

@@ -1,5 +1,6 @@
 package com.poncegl.sigc.ui.feature.auth
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -9,7 +10,11 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poncegl.sigc.ui.components.login.LoginContent
+import com.poncegl.sigc.ui.components.login.SigcSnackbarVisuals
+import com.poncegl.sigc.ui.components.login.SnackbarType
+import com.poncegl.sigc.ui.feature.auth.login.AuthMode
 import com.poncegl.sigc.ui.feature.auth.login.LoginUiEffect
+import com.poncegl.sigc.ui.feature.auth.login.LoginUiEvent
 import com.poncegl.sigc.ui.feature.auth.login.LoginViewModel
 import kotlinx.coroutines.flow.collectLatest
 
@@ -23,6 +28,10 @@ fun LoginScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    BackHandler(enabled = state.authMode == AuthMode.RECOVER_PASSWORD) {
+        viewModel.onEvent(LoginUiEvent.OnModeChange(AuthMode.LOGIN))
+    }
+
     LaunchedEffect(state.isLoginSuccessful) {
         if (state.isLoginSuccessful) onLoginSuccess()
     }
@@ -31,7 +40,22 @@ fun LoginScreen(
         viewModel.uiEffect.collectLatest { effect ->
             when (effect) {
                 is LoginUiEffect.ShowError -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    snackbarHostState.showSnackbar(
+                        SigcSnackbarVisuals(
+                            message = effect.message,
+                            type = SnackbarType.ERROR,
+                            withDismissAction = true
+                        )
+                    )
+                }
+                is LoginUiEffect.ShowMessage -> {
+                    snackbarHostState.showSnackbar(
+                        SigcSnackbarVisuals(
+                            message = effect.message,
+                            type = SnackbarType.SUCCESS,
+                            withDismissAction = true
+                        )
+                    )
                 }
             }
         }

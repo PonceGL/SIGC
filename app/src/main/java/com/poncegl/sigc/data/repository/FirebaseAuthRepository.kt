@@ -16,6 +16,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.poncegl.sigc.BuildConfig
 import com.poncegl.sigc.core.constants.FirestoreConstants
+import com.poncegl.sigc.data.repository.dto.UserDto
+import com.poncegl.sigc.data.repository.dto.UserFields
 import com.poncegl.sigc.domain.model.RegistrationMethod
 import com.poncegl.sigc.domain.model.RegistrationPlatform
 import com.poncegl.sigc.domain.model.User
@@ -73,7 +75,6 @@ class FirebaseAuthRepository @Inject constructor(
 
             val newUser = firebaseUser.toDomain().copy(displayName = name)
 
-            // Usamos el DTO para asegurar el tipado estricto
             val userDto = UserDto(
                 id = newUser.id,
                 email = newUser.email,
@@ -152,7 +153,6 @@ class FirebaseAuthRepository @Inject constructor(
 
             val domainUser = firebaseUser.toDomain()
 
-            // Creamos el DTO con los datos actuales
             val userDto = UserDto(
                 id = domainUser.id,
                 email = domainUser.email,
@@ -165,7 +165,6 @@ class FirebaseAuthRepository @Inject constructor(
                 registrationPlatform = domainUser.registrationPlatform.name
             )
 
-            // Convertimos a mapa mutable para excluir campos que no queremos sobreescribir (como updatedAt)
             val updates = userDto.toMap().toMutableMap()
             updates.remove(UserFields.UPDATED_AT)
 
@@ -208,42 +207,4 @@ class FirebaseAuthRepository @Inject constructor(
             registrationPlatform = RegistrationPlatform.ANDROID
         )
     }
-}
-
-// Constantes para los nombres de campos en Firestore
-private object UserFields {
-    const val ID = "id"
-    const val EMAIL = "email"
-    const val DISPLAY_NAME = "displayName"
-    const val PHOTO_URL = "photoUrl"
-    const val CREATED_AT = "createdAt"
-    const val UPDATED_AT = "updatedAt"
-    const val LAST_LOGIN_AT = "lastLoginAt"
-    const val REGISTRATION_METHOD = "registrationMethod"
-    const val REGISTRATION_PLATFORM = "registrationPlatform"
-}
-
-// DTO Privado: Define exactamente qué se puede guardar en Firestore
-private data class UserDto(
-    val id: String,
-    val email: String?,
-    val displayName: String?,
-    val photoUrl: String?,
-    val createdAt: Date,
-    val updatedAt: Date?,
-    val lastLoginAt: Date?,
-    val registrationMethod: String,
-    val registrationPlatform: String
-) {
-    fun toMap(): Map<String, Any?> = mapOf(
-        UserFields.ID to id,
-        UserFields.EMAIL to email,
-        UserFields.DISPLAY_NAME to displayName,
-        UserFields.PHOTO_URL to photoUrl,
-        UserFields.CREATED_AT to createdAt,
-        UserFields.UPDATED_AT to updatedAt,
-        UserFields.LAST_LOGIN_AT to lastLoginAt,
-        UserFields.REGISTRATION_METHOD to registrationMethod,
-        UserFields.REGISTRATION_PLATFORM to registrationPlatform
-    )
 }

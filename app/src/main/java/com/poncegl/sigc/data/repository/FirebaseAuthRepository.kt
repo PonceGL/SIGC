@@ -39,7 +39,12 @@ class FirebaseAuthRepository @Inject constructor(
 
     override val currentUser: Flow<User?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(auth.currentUser?.toDomain())
+            val firebaseUser = auth.currentUser
+            if (firebaseUser != null) {
+                trySend(mapToDomain(firebaseUser))
+            } else {
+                trySend(null)
+            }
         }
 
         firebaseAuth.addAuthStateListener(authStateListener)
@@ -56,7 +61,8 @@ class FirebaseAuthRepository @Inject constructor(
     override suspend fun login(email: String, password: String): Result<User> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val user = result.user?.toDomain() ?: throw Exception("El usuario autenticado es nulo")
+            val firebaseUser = result.user ?: throw Exception("El usuario autenticado es nulo")
+            val user = mapToDomain(firebaseUser)
             Result.success(user)
         } catch (e: Exception) {
             val safeErrorMessage = when (e) {
@@ -73,7 +79,7 @@ class FirebaseAuthRepository @Inject constructor(
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user ?: throw Exception("Error crítico al crear usuario")
 
-            val newUser = firebaseUser.toDomain().copy(displayName = name)
+            val newUser = mapToDomain(firebaseUser).copy(displayName = name)
 
             val userDto = UserDto(
                 id = newUser.id,
@@ -151,7 +157,7 @@ class FirebaseAuthRepository @Inject constructor(
             val authResult = firebaseAuth.signInWithCredential(authCredential).await()
             val firebaseUser = authResult.user ?: throw Exception("Error al autenticar con Google")
 
-            val domainUser = firebaseUser.toDomain()
+            val domainUser = mapToDomain(firebaseUser)
 
             val userDto = UserDto(
                 id = domainUser.id,
@@ -188,18 +194,18 @@ class FirebaseAuthRepository @Inject constructor(
         firebaseAuth.signOut()
     }
 
-    private fun FirebaseUser.toDomain(): User {
-        val creationTimestamp = metadata?.creationTimestamp ?: System.currentTimeMillis()
-        val lastSignInTimestamp = metadata?.lastSignInTimestamp ?: System.currentTimeMillis()
+    private fun mapToDomain(firebaseUser: FirebaseUser): User {
+        val creationTimestamp = firebaseUser.metadata?.creationTimestamp ?: System.currentTimeMillis()
+        val lastSignInTimestamp = firebaseUser.metadata?.lastSignInTimestamp ?: System.currentTimeMillis()
 
-        val isGoogle = providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
+        val isGoogle = firebaseUser.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
         val method = if (isGoogle) RegistrationMethod.GOOGLE else RegistrationMethod.EMAIL_AND_PASSWORD
 
         return User(
-            id = uid,
-            email = email,
-            displayName = displayName,
-            photoUrl = photoUrl?.toString(),
+            id = firebaseUser.uid,
+            email = firebaseUser.email,
+            displayName = firebaseUser.displayName,
+            photoUrl = firebaseUser.photoUrl?.toString(),
             createdAt = Instant.ofEpochMilli(creationTimestamp),
             updatedAt = null,
             lastLoginAt = Instant.ofEpochMilli(lastSignInTimestamp),

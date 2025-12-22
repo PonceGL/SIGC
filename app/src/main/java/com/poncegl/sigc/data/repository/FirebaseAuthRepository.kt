@@ -73,21 +73,22 @@ class FirebaseAuthRepository @Inject constructor(
 
             val newUser = firebaseUser.toDomain().copy(displayName = name)
 
-            val userMap = hashMapOf<String, Any?>(
-                "id" to newUser.id,
-                "email" to newUser.email,
-                "displayName" to newUser.displayName,
-                "photoUrl" to newUser.photoUrl,
-                "createdAt" to Date.from(newUser.createdAt),
-                "updatedAt" to newUser.updatedAt?.let { Date.from(it) },
-                "lastLoginAt" to newUser.lastLoginAt?.let { Date.from(it) },
-                "registrationMethod" to newUser.registrationMethod.name,
-                "registrationPlatform" to newUser.registrationPlatform.name
+            // Usamos el DTO para asegurar el tipado estricto
+            val userDto = UserDto(
+                id = newUser.id,
+                email = newUser.email,
+                displayName = newUser.displayName,
+                photoUrl = newUser.photoUrl,
+                createdAt = Date.from(newUser.createdAt),
+                updatedAt = newUser.updatedAt?.let { Date.from(it) },
+                lastLoginAt = newUser.lastLoginAt?.let { Date.from(it) },
+                registrationMethod = newUser.registrationMethod.name,
+                registrationPlatform = newUser.registrationPlatform.name
             )
 
             firestore.collection(FirestoreConstants.USERS_COLLECTION)
                 .document(firebaseUser.uid)
-                .set(userMap)
+                .set(userDto.toMap())
                 .await()
 
             Result.success(newUser)
@@ -151,16 +152,22 @@ class FirebaseAuthRepository @Inject constructor(
 
             val domainUser = firebaseUser.toDomain()
 
-            val updates = hashMapOf<String, Any?>(
-                "id" to domainUser.id,
-                "email" to domainUser.email,
-                "displayName" to domainUser.displayName,
-                "photoUrl" to domainUser.photoUrl,
-                "lastLoginAt" to Date.from(Instant.now()),
-                "createdAt" to Date.from(domainUser.createdAt),
-                "registrationPlatform" to domainUser.registrationPlatform.name,
-                "registrationMethod" to domainUser.registrationMethod.name
+            // Creamos el DTO con los datos actuales
+            val userDto = UserDto(
+                id = domainUser.id,
+                email = domainUser.email,
+                displayName = domainUser.displayName,
+                photoUrl = domainUser.photoUrl,
+                createdAt = Date.from(domainUser.createdAt),
+                updatedAt = null,
+                lastLoginAt = Date.from(Instant.now()),
+                registrationMethod = domainUser.registrationMethod.name,
+                registrationPlatform = domainUser.registrationPlatform.name
             )
+
+            // Convertimos a mapa mutable para excluir campos que no queremos sobreescribir (como updatedAt)
+            val updates = userDto.toMap().toMutableMap()
+            updates.remove(UserFields.UPDATED_AT)
 
             firestore.collection(FirestoreConstants.USERS_COLLECTION)
                 .document(firebaseUser.uid)
@@ -201,4 +208,42 @@ class FirebaseAuthRepository @Inject constructor(
             registrationPlatform = RegistrationPlatform.ANDROID
         )
     }
+}
+
+// Constantes para los nombres de campos en Firestore
+private object UserFields {
+    const val ID = "id"
+    const val EMAIL = "email"
+    const val DISPLAY_NAME = "displayName"
+    const val PHOTO_URL = "photoUrl"
+    const val CREATED_AT = "createdAt"
+    const val UPDATED_AT = "updatedAt"
+    const val LAST_LOGIN_AT = "lastLoginAt"
+    const val REGISTRATION_METHOD = "registrationMethod"
+    const val REGISTRATION_PLATFORM = "registrationPlatform"
+}
+
+// DTO Privado: Define exactamente qué se puede guardar en Firestore
+private data class UserDto(
+    val id: String,
+    val email: String?,
+    val displayName: String?,
+    val photoUrl: String?,
+    val createdAt: Date,
+    val updatedAt: Date?,
+    val lastLoginAt: Date?,
+    val registrationMethod: String,
+    val registrationPlatform: String
+) {
+    fun toMap(): Map<String, Any?> = mapOf(
+        UserFields.ID to id,
+        UserFields.EMAIL to email,
+        UserFields.DISPLAY_NAME to displayName,
+        UserFields.PHOTO_URL to photoUrl,
+        UserFields.CREATED_AT to createdAt,
+        UserFields.UPDATED_AT to updatedAt,
+        UserFields.LAST_LOGIN_AT to lastLoginAt,
+        UserFields.REGISTRATION_METHOD to registrationMethod,
+        UserFields.REGISTRATION_PLATFORM to registrationPlatform
+    )
 }

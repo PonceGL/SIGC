@@ -12,29 +12,35 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.poncegl.sigc.BuildConfig
-import com.poncegl.sigc.core.constants.FirestoreConstants
+import com.poncegl.sigc.data.repository.dto.UserFields
+import com.poncegl.sigc.domain.model.RegistrationMethod
+import com.poncegl.sigc.domain.model.RegistrationPlatform
 import com.poncegl.sigc.domain.model.User
 import com.poncegl.sigc.domain.repository.AuthRepository
+import com.poncegl.sigc.domain.repository.UserRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 
 class FirebaseAuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
-    private val credentialManager: CredentialManager
+    private val credentialManager: CredentialManager,
+    private val userRepository: UserRepository
 ) : AuthRepository {
 
     override val currentUser: Flow<User?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(auth.currentUser?.toDomain())
+            val firebaseUser = auth.currentUser
+            if (firebaseUser != null) {
+                trySend(mapToDomain(firebaseUser))
+            } else {
+                trySend(null)
+            }
         }
 
         firebaseAuth.addAuthStateListener(authStateListener)
@@ -51,13 +57,16 @@ class FirebaseAuthRepository @Inject constructor(
     override suspend fun login(email: String, password: String): Result<User> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val user = result.user?.toDomain() ?: throw Exception("El usuario autenticado es nulo")
+            val firebaseUser = result.user ?: throw Exception("El usuario autenticado es nulo")
+
+            userRepository.updateLastLogin(firebaseUser.uid, Instant.now())
+
+            val user = mapToDomain(firebaseUser)
             Result.success(user)
         } catch (e: Exception) {
             val safeErrorMessage = when (e) {
                 is FirebaseAuthInvalidUserException,
                 is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
-
                 else -> "Error al iniciar sesión. Intenta nuevamente."
             }
             Result.failure(Exception(safeErrorMessage))
@@ -66,34 +75,31 @@ class FirebaseAuthRepository @Inject constructor(
 
     override suspend fun signUp(name: String, email: String, password: String): Result<User> {
         return try {
+            if (name.isEmpty()) throw Exception("El nombre de usuario no puede estar vacío")
+
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user ?: throw Exception("Error crítico al crear usuario")
 
-            val userMap = hashMapOf(
-                "id" to firebaseUser.uid,
-                "displayName" to name,
-                "email" to email,
-                "photoUrl" to null,
-                "createdAt" to FieldValue.serverTimestamp(),
-                "platform" to "android"
-            )
+            val newUser = mapToDomain(firebaseUser).copy(displayName = name)
 
-            firestore.collection(FirestoreConstants.USERS_COLLECTION)
-                .document(firebaseUser.uid)
-                .set(userMap)
-                .await()
+            val saveResult = userRepository.saveUser(newUser)
 
-            val domainUser = firebaseUser.toDomain().copy(displayName = name)
-            Result.success(domainUser)
+            if (saveResult.isFailure) {
+                rollbackRegistration(firebaseUser)
+
+                throw saveResult.exceptionOrNull()
+                    ?: Exception("Error al guardar datos del usuario")
+            }
+
+            Result.success(newUser)
 
         } catch (e: Exception) {
             val safeErrorMessage = when (e) {
                 is FirebaseAuthWeakPasswordException -> "La contraseña no es segura. Intenta con una más larga y compleja."
                 is FirebaseAuthInvalidCredentialsException -> "El formato del correo electrónico no es válido."
                 is FirebaseAuthUserCollisionException -> "Ya existe una cuenta vinculada a este correo."
-                else -> "No se pudo crear la cuenta. Por favor intenta más tarde."
+                else -> e.message ?: "No se pudo crear la cuenta. Por favor intenta más tarde."
             }
-            // TODO: Si falla Firestore pero Auth tuvo éxito, idealmente deberíamos borrar el usuario de Auth (Rollback) para no dejar cuentas "zombies" sin datos. Por ahora lo manejamos como error general.
             Result.failure(Exception(safeErrorMessage))
         }
     }
@@ -122,7 +128,6 @@ class FirebaseAuthRepository @Inject constructor(
             val credential = result.credential
 
             val googleIdToken = when {
-
                 credential is GoogleIdTokenCredential -> {
                     credential.idToken
                 }
@@ -130,7 +135,6 @@ class FirebaseAuthRepository @Inject constructor(
                 credential is androidx.credentials.CustomCredential &&
                         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
                     try {
-
                         val googleIdTokenCredential =
                             GoogleIdTokenCredential.createFrom(credential.data)
                         googleIdTokenCredential.idToken
@@ -148,21 +152,24 @@ class FirebaseAuthRepository @Inject constructor(
             val authResult = firebaseAuth.signInWithCredential(authCredential).await()
             val firebaseUser = authResult.user ?: throw Exception("Error al autenticar con Google")
 
-            val userMap = hashMapOf(
-                "id" to firebaseUser.uid,
-                "displayName" to (firebaseUser.displayName ?: "Usuario Google"),
-                "email" to (firebaseUser.email ?: ""),
-                "photoUrl" to (firebaseUser.photoUrl?.toString()),
-                "lastLogin" to FieldValue.serverTimestamp(),
-                "platform" to "android"
-            )
+            val isNewUser = authResult.additionalUserInfo?.isNewUser == true
+            val domainUser = mapToDomain(firebaseUser)
 
-            firestore.collection(FirestoreConstants.USERS_COLLECTION)
-                .document(firebaseUser.uid)
-                .set(userMap, SetOptions.merge())
-                .await()
+            if (isNewUser) {
+                userRepository.saveUser(domainUser)
+            } else {
+                userRepository.updateLastLogin(domainUser.id, Instant.now())
+                
+                userRepository.updateUserProfile(
+                    domainUser.id,
+                    mapOf(
+                        UserFields.DISPLAY_NAME to domainUser.displayName,
+                        UserFields.PHOTO_URL to domainUser.photoUrl
+                    )
+                )
+            }
 
-            Result.success(firebaseUser.toDomain())
+            Result.success(domainUser)
 
         } catch (e: Exception) {
             if (e is androidx.credentials.exceptions.GetCredentialCancellationException) {
@@ -177,12 +184,40 @@ class FirebaseAuthRepository @Inject constructor(
         firebaseAuth.signOut()
     }
 
-    private fun FirebaseUser.toDomain(): User {
+    /**
+     * Elimina el usuario de Auth si la persistencia de datos falló.
+     * Esto asegura atomicidad: O se crea todo (Auth + Firestore) o no se crea nada.
+     */
+    private suspend fun rollbackRegistration(user: FirebaseUser) {
+        try {
+            user.delete().await()
+        } catch (e: Exception) {
+            // TODO: esto debería enviarse a Crashlytics/Logger
+            e.printStackTrace()
+        }
+    }
+
+    private fun mapToDomain(firebaseUser: FirebaseUser): User {
+        val creationTimestamp =
+            firebaseUser.metadata?.creationTimestamp ?: System.currentTimeMillis()
+        val lastSignInTimestamp =
+            firebaseUser.metadata?.lastSignInTimestamp ?: System.currentTimeMillis()
+
+        val isGoogle =
+            firebaseUser.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
+        val method =
+            if (isGoogle) RegistrationMethod.GOOGLE else RegistrationMethod.EMAIL_AND_PASSWORD
+
         return User(
-            id = this.uid,
-            email = this.email,
-            displayName = this.displayName,
-            photoUrl = this.photoUrl?.toString()
+            id = firebaseUser.uid,
+            email = firebaseUser.email,
+            displayName = firebaseUser.displayName,
+            photoUrl = firebaseUser.photoUrl?.toString(),
+            createdAt = Instant.ofEpochMilli(creationTimestamp),
+            updatedAt = null,
+            lastLoginAt = Instant.ofEpochMilli(lastSignInTimestamp),
+            registrationMethod = method,
+            registrationPlatform = RegistrationPlatform.ANDROID
         )
     }
 }

@@ -4,9 +4,6 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.poncegl.sigc.data.repository.FirebaseAuthRepository
-import com.poncegl.sigc.domain.repository.AuthRepository
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,33 +13,25 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class AuthModule {
+object AuthModule {
 
-    @Binds
+    @Provides
     @Singleton
-    abstract fun bindAuthRepository(
-        impl: FirebaseAuthRepository
-    ): AuthRepository
+    fun provideFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
+    }
 
-    companion object {
-        @Provides
-        @Singleton
-        fun provideFirebaseAuth(): FirebaseAuth {
-            return FirebaseAuth.getInstance()
-        }
+    @Provides
+    @Singleton
+    fun provideFirebaseFirestore(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance()
+    }
 
-        @Provides
-        @Singleton
-        fun provideFirebaseFirestore(): FirebaseFirestore {
-            return FirebaseFirestore.getInstance()
-        }
-
-        @Provides
-        @Singleton
-        fun provideCredentialManager(
-            @ApplicationContext context: Context
-        ): CredentialManager {
-            return CredentialManager.create(context)
-        }
+    @Provides
+    @Singleton
+    fun provideCredentialManager(
+        @ApplicationContext context: Context
+    ): CredentialManager {
+        return CredentialManager.create(context)
     }
 }

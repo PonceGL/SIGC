@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import com.poncegl.sigc.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -14,23 +15,23 @@ private const val KEY_ONBOARDING_COMPLETED = "is_onboarding_completed"
 @Singleton
 class UserPreferencesRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>
-) {
+) : UserPreferencesRepository {
     private object PreferencesKeys {
         val IS_ONBOARDING_COMPLETED = booleanPreferencesKey(KEY_ONBOARDING_COMPLETED)
     }
 
-    val isOnboardingCompleted: Flow<Boolean> = dataStore.data
+    override val isOnboardingCompleted: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.IS_ONBOARDING_COMPLETED] ?: false
         }
 
-    suspend fun saveOnboardingCompleted() {
+    override suspend fun saveOnboardingCompleted() {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_ONBOARDING_COMPLETED] = true
         }
     }
 
-    suspend fun clearOnboarding() {
+    override suspend fun clearOnboarding() {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_ONBOARDING_COMPLETED] = false
         }

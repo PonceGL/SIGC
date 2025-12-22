@@ -1,31 +1,35 @@
 package com.poncegl.sigc.di
 
-import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStoreFile
+import com.poncegl.sigc.data.repository.FirebaseAuthRepository
+import com.poncegl.sigc.data.repository.UserPreferencesRepository
+import com.poncegl.sigc.data.repository.UserRepositoryImpl
+import com.poncegl.sigc.domain.repository.AuthRepository
+import com.poncegl.sigc.domain.repository.UserRepository
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataModule {
+abstract class DataModule {
 
-    private const val USER_PREFERENCES_NAME = "user_preferences"
-
-    @Provides
+    @Binds
     @Singleton
-    fun providePreferencesDataStore(
-        @ApplicationContext appContext: Context
-    ): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            produceFile = { appContext.preferencesDataStoreFile(USER_PREFERENCES_NAME) }
-        )
-    }
+    abstract fun bindUserPreferencesRepository(
+        userPreferencesRepository: UserPreferencesRepository
+    ): com.poncegl.sigc.domain.repository.UserPreferencesRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        firebaseAuthRepository: FirebaseAuthRepository
+    ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(
+        userRepositoryImpl: UserRepositoryImpl
+    ): UserRepository
 }

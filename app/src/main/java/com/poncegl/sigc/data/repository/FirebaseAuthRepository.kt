@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.poncegl.sigc.BuildConfig
+import com.poncegl.sigc.data.repository.dto.UserFields
 import com.poncegl.sigc.domain.model.RegistrationMethod
 import com.poncegl.sigc.domain.model.RegistrationPlatform
 import com.poncegl.sigc.domain.model.User
@@ -66,7 +67,6 @@ class FirebaseAuthRepository @Inject constructor(
             val safeErrorMessage = when (e) {
                 is FirebaseAuthInvalidUserException,
                 is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
-
                 else -> "Error al iniciar sesión. Intenta nuevamente."
             }
             Result.failure(Exception(safeErrorMessage))
@@ -75,6 +75,8 @@ class FirebaseAuthRepository @Inject constructor(
 
     override suspend fun signUp(name: String, email: String, password: String): Result<User> {
         return try {
+            if (name.isEmpty()) throw Exception("El nombre de usuario no puede estar vacío")
+
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user ?: throw Exception("Error crítico al crear usuario")
 
@@ -83,7 +85,8 @@ class FirebaseAuthRepository @Inject constructor(
             val saveResult = userRepository.saveUser(newUser)
 
             if (saveResult.isFailure) {
-                // Opcional: Podrías considerar borrar el usuario de Auth si falla Firestore (Rollback)
+                rollbackRegistration(firebaseUser)
+
                 throw saveResult.exceptionOrNull()
                     ?: Exception("Error al guardar datos del usuario")
             }
@@ -95,7 +98,7 @@ class FirebaseAuthRepository @Inject constructor(
                 is FirebaseAuthWeakPasswordException -> "La contraseña no es segura. Intenta con una más larga y compleja."
                 is FirebaseAuthInvalidCredentialsException -> "El formato del correo electrónico no es válido."
                 is FirebaseAuthUserCollisionException -> "Ya existe una cuenta vinculada a este correo."
-                else -> "No se pudo crear la cuenta. Por favor intenta más tarde."
+                else -> e.message ?: "No se pudo crear la cuenta. Por favor intenta más tarde."
             }
             Result.failure(Exception(safeErrorMessage))
         }
@@ -156,14 +159,14 @@ class FirebaseAuthRepository @Inject constructor(
                 userRepository.saveUser(domainUser)
             } else {
                 userRepository.updateLastLogin(domainUser.id, Instant.now())
-
-                // Opcional: También podríamos actualizar foto/nombre si cambiaron en Google
-                /*
-                userRepository.updateUserProfile(domainUser.id, mapOf(
-                    "displayName" to domainUser.displayName,
-                    "photoUrl" to domainUser.photoUrl
-                ))
-                */
+                
+                userRepository.updateUserProfile(
+                    domainUser.id,
+                    mapOf(
+                        UserFields.DISPLAY_NAME to domainUser.displayName,
+                        UserFields.PHOTO_URL to domainUser.photoUrl
+                    )
+                )
             }
 
             Result.success(domainUser)
@@ -179,6 +182,19 @@ class FirebaseAuthRepository @Inject constructor(
 
     override suspend fun logout() {
         firebaseAuth.signOut()
+    }
+
+    /**
+     * Elimina el usuario de Auth si la persistencia de datos falló.
+     * Esto asegura atomicidad: O se crea todo (Auth + Firestore) o no se crea nada.
+     */
+    private suspend fun rollbackRegistration(user: FirebaseUser) {
+        try {
+            user.delete().await()
+        } catch (e: Exception) {
+            // TODO: esto debería enviarse a Crashlytics/Logger
+            e.printStackTrace()
+        }
     }
 
     private fun mapToDomain(firebaseUser: FirebaseUser): User {

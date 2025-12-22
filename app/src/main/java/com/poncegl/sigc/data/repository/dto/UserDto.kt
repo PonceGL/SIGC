@@ -12,6 +12,14 @@ object UserFields {
     const val LAST_LOGIN_AT = "lastLoginAt"
     const val REGISTRATION_METHOD = "registrationMethod"
     const val REGISTRATION_PLATFORM = "registrationPlatform"
+
+    val IMMUTABLE_FIELDS = setOf(
+        ID,
+        EMAIL,
+        CREATED_AT,
+        REGISTRATION_METHOD,
+        REGISTRATION_PLATFORM
+    )
 }
 
 data class UserDto(

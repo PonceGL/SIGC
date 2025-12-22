@@ -12,29 +12,24 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.poncegl.sigc.BuildConfig
-import com.poncegl.sigc.core.constants.FirestoreConstants
-import com.poncegl.sigc.data.repository.dto.UserDto
-import com.poncegl.sigc.data.repository.dto.UserFields
 import com.poncegl.sigc.domain.model.RegistrationMethod
 import com.poncegl.sigc.domain.model.RegistrationPlatform
 import com.poncegl.sigc.domain.model.User
 import com.poncegl.sigc.domain.repository.AuthRepository
+import com.poncegl.sigc.domain.repository.UserRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
-import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 
 class FirebaseAuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
-    private val credentialManager: CredentialManager
+    private val credentialManager: CredentialManager,
+    private val userRepository: UserRepository
 ) : AuthRepository {
 
     override val currentUser: Flow<User?> = callbackFlow {
@@ -62,12 +57,16 @@ class FirebaseAuthRepository @Inject constructor(
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user ?: throw Exception("El usuario autenticado es nulo")
+
+            userRepository.updateLastLogin(firebaseUser.uid, Instant.now())
+
             val user = mapToDomain(firebaseUser)
             Result.success(user)
         } catch (e: Exception) {
             val safeErrorMessage = when (e) {
                 is FirebaseAuthInvalidUserException,
                 is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
+
                 else -> "Error al iniciar sesión. Intenta nuevamente."
             }
             Result.failure(Exception(safeErrorMessage))
@@ -81,22 +80,13 @@ class FirebaseAuthRepository @Inject constructor(
 
             val newUser = mapToDomain(firebaseUser).copy(displayName = name)
 
-            val userDto = UserDto(
-                id = newUser.id,
-                email = newUser.email,
-                displayName = newUser.displayName,
-                photoUrl = newUser.photoUrl,
-                createdAt = Date.from(newUser.createdAt),
-                updatedAt = newUser.updatedAt?.let { Date.from(it) },
-                lastLoginAt = newUser.lastLoginAt?.let { Date.from(it) },
-                registrationMethod = newUser.registrationMethod.name,
-                registrationPlatform = newUser.registrationPlatform.name
-            )
+            val saveResult = userRepository.saveUser(newUser)
 
-            firestore.collection(FirestoreConstants.USERS_COLLECTION)
-                .document(firebaseUser.uid)
-                .set(userDto.toMap())
-                .await()
+            if (saveResult.isFailure) {
+                // Opcional: Podrías considerar borrar el usuario de Auth si falla Firestore (Rollback)
+                throw saveResult.exceptionOrNull()
+                    ?: Exception("Error al guardar datos del usuario")
+            }
 
             Result.success(newUser)
 
@@ -138,6 +128,7 @@ class FirebaseAuthRepository @Inject constructor(
                 credential is GoogleIdTokenCredential -> {
                     credential.idToken
                 }
+
                 credential is androidx.credentials.CustomCredential &&
                         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
                     try {
@@ -148,6 +139,7 @@ class FirebaseAuthRepository @Inject constructor(
                         throw Exception("Error al leer los datos de Google: ${e.message}")
                     }
                 }
+
                 else -> {
                     throw Exception("Tipo de credencial no soportado: ${credential.javaClass.name}")
                 }
@@ -157,27 +149,22 @@ class FirebaseAuthRepository @Inject constructor(
             val authResult = firebaseAuth.signInWithCredential(authCredential).await()
             val firebaseUser = authResult.user ?: throw Exception("Error al autenticar con Google")
 
+            val isNewUser = authResult.additionalUserInfo?.isNewUser == true
             val domainUser = mapToDomain(firebaseUser)
 
-            val userDto = UserDto(
-                id = domainUser.id,
-                email = domainUser.email,
-                displayName = domainUser.displayName,
-                photoUrl = domainUser.photoUrl,
-                createdAt = Date.from(domainUser.createdAt),
-                updatedAt = null,
-                lastLoginAt = Date.from(Instant.now()),
-                registrationMethod = domainUser.registrationMethod.name,
-                registrationPlatform = domainUser.registrationPlatform.name
-            )
+            if (isNewUser) {
+                userRepository.saveUser(domainUser)
+            } else {
+                userRepository.updateLastLogin(domainUser.id, Instant.now())
 
-            val updates = userDto.toMap().toMutableMap()
-            updates.remove(UserFields.UPDATED_AT)
-
-            firestore.collection(FirestoreConstants.USERS_COLLECTION)
-                .document(firebaseUser.uid)
-                .set(updates, SetOptions.merge())
-                .await()
+                // Opcional: También podríamos actualizar foto/nombre si cambiaron en Google
+                /*
+                userRepository.updateUserProfile(domainUser.id, mapOf(
+                    "displayName" to domainUser.displayName,
+                    "photoUrl" to domainUser.photoUrl
+                ))
+                */
+            }
 
             Result.success(domainUser)
 
@@ -195,11 +182,15 @@ class FirebaseAuthRepository @Inject constructor(
     }
 
     private fun mapToDomain(firebaseUser: FirebaseUser): User {
-        val creationTimestamp = firebaseUser.metadata?.creationTimestamp ?: System.currentTimeMillis()
-        val lastSignInTimestamp = firebaseUser.metadata?.lastSignInTimestamp ?: System.currentTimeMillis()
+        val creationTimestamp =
+            firebaseUser.metadata?.creationTimestamp ?: System.currentTimeMillis()
+        val lastSignInTimestamp =
+            firebaseUser.metadata?.lastSignInTimestamp ?: System.currentTimeMillis()
 
-        val isGoogle = firebaseUser.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
-        val method = if (isGoogle) RegistrationMethod.GOOGLE else RegistrationMethod.EMAIL_AND_PASSWORD
+        val isGoogle =
+            firebaseUser.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
+        val method =
+            if (isGoogle) RegistrationMethod.GOOGLE else RegistrationMethod.EMAIL_AND_PASSWORD
 
         return User(
             id = firebaseUser.uid,

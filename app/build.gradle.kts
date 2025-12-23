@@ -130,14 +130,16 @@ android {
 
         val secretsKeys = listOf(
             "SERVER_CLIENT_ID",
-            "APP_NAME"
+            "APP_NAME",
+            "AUTH_HOST"
         )
 
         secretsKeys.forEach { key ->
             val value = getSecretStrict(key, suffix)
-
             buildConfigField("String", key, "\"$value\"")
         }
+
+        val authHostValue = getSecretStrict("AUTH_HOST", suffix)
 
         val appNameVariant = when(flavorName) {
             "dev" -> "SIGC - DEV"
@@ -147,6 +149,7 @@ android {
         }
 
         resValue("string", "app_name_flavor", appNameVariant)
+        resValue("string", "auth_host", authHostValue)
 
         buildConfigField("String", "APP_NAME", "\"$appNameVariant\"")
     }

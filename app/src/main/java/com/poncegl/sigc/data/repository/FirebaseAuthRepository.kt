@@ -67,6 +67,7 @@ class FirebaseAuthRepository @Inject constructor(
             val safeErrorMessage = when (e) {
                 is FirebaseAuthInvalidUserException,
                 is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
+
                 else -> "Error al iniciar sesión. Intenta nuevamente."
             }
             Result.failure(Exception(safeErrorMessage))
@@ -182,12 +183,34 @@ class FirebaseAuthRepository @Inject constructor(
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
         return try {
-            firebaseAuth.sendPasswordResetEmail(email).await()
+            val actionCodeSettings = com.google.firebase.auth.ActionCodeSettings.newBuilder()
+                .setUrl("https://${BuildConfig.AUTH_HOST}/__/auth/action")
+                .setHandleCodeInApp(true)
+                .setAndroidPackageName(
+                    BuildConfig.APPLICATION_ID,
+                    true,
+                    null
+                )
+                .build()
+
+            firebaseAuth.sendPasswordResetEmail(email, actionCodeSettings).await()
             Result.success(Unit)
         } catch (e: Exception) {
             e.printStackTrace()
-
             Result.failure(Exception("Si el correo está registrado, recibirás las instrucciones."))
+        }
+    }
+
+    override suspend fun confirmPasswordReset(oobCode: String, newPassword: String): Result<Unit> {
+        return try {
+            firebaseAuth.confirmPasswordReset(oobCode, newPassword).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            val msg = when (e) {
+                is FirebaseAuthWeakPasswordException -> "La contraseña es muy débil."
+                else -> "El enlace ha expirado o no es válido."
+            }
+            Result.failure(Exception(msg))
         }
     }
 

@@ -8,4 +8,5 @@
 .externalNativeBuild
 .cxx
 **/google-services.json
+app/dev
 

@@ -37,21 +37,41 @@ fun LoginFormCard(
     onEvent: (LoginUiEvent) -> Unit,
     onNavigateToLegals: () -> Unit
 ) {
-//    Card(
-//        shape = RoundedCornerShape(16.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-//        ),
-//        modifier = Modifier.fillMaxWidth()
-//    ) {
     Column(modifier = Modifier.padding(vertical = 20.dp)) {
-        AuthModeToggle(
-            currentMode = state.authMode,
-            onModeSelected = { onEvent(LoginUiEvent.OnModeChange(it)) }
-        )
+        AnimatedVisibility(
+            visible = state.authMode != AuthMode.RECOVER_PASSWORD,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column {
+                AuthModeToggle(
+                    currentMode = state.authMode,
+                    onModeSelected = { onEvent(LoginUiEvent.OnModeChange(it)) }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
+        AnimatedVisibility(
+            visible = state.authMode == AuthMode.RECOVER_PASSWORD,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column {
+                Text(
+                    text = "Recuperar Contraseña",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "Ingresa tu correo electrónico para recibir las instrucciones.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+            }
+        }
 
         AnimatedVisibility(
             visible = state.authMode == AuthMode.REGISTER,
@@ -70,7 +90,6 @@ fun LoginFormCard(
             }
         }
 
-
         SigcTextField(
             value = state.email,
             onValueChange = { onEvent(LoginUiEvent.OnEmailChanged(it)) },
@@ -80,7 +99,8 @@ fun LoginFormCard(
             enabled = !state.isLoading
         )
 
-        val showPasswordInput = state.isEmailValid || state.authMode == AuthMode.REGISTER
+        val showPasswordInput = (state.isEmailValid || state.authMode == AuthMode.REGISTER) &&
+                state.authMode != AuthMode.RECOVER_PASSWORD
 
         AnimatedVisibility(
             visible = showPasswordInput,
@@ -138,8 +158,12 @@ fun LoginFormCard(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        val buttonText =
-            if (state.authMode == AuthMode.LOGIN) "Iniciar Sesión" else "Crear Cuenta"
+        val buttonText = when (state.authMode) {
+            AuthMode.LOGIN -> "Iniciar Sesión"
+            AuthMode.REGISTER -> "Crear Cuenta"
+            AuthMode.RECOVER_PASSWORD -> "Enviar correo"
+        }
+
         Button(
             onClick = { onEvent(LoginUiEvent.OnSubmitClicked) },
             modifier = Modifier
@@ -159,10 +183,11 @@ fun LoginFormCard(
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         if (state.authMode == AuthMode.LOGIN) {
-            Spacer(modifier = Modifier.height(16.dp))
             TextButton(
-                onClick = { onEvent(LoginUiEvent.OnForgotPasswordClicked) },
+                onClick = { onEvent(LoginUiEvent.OnModeChange(AuthMode.RECOVER_PASSWORD)) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -171,7 +196,17 @@ fun LoginFormCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        } else if (state.authMode == AuthMode.RECOVER_PASSWORD) {
+            TextButton(
+                onClick = { onEvent(LoginUiEvent.OnModeChange(AuthMode.LOGIN)) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Volver al inicio de sesión",
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
-//    }
 }

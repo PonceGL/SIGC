@@ -31,6 +31,17 @@ interface AuthRepository {
     suspend fun signInWithGoogle(context: Context): Result<User>
 
     /**
+     * Envía un correo electrónico para restablecer la contraseña.
+     */
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+
+    /**
+     * Confirma el cambio de contraseña utilizando el código (oobCode) recibido por correo
+     * y la nueva contraseña ingresada por el usuario.
+     */
+    suspend fun confirmPasswordReset(oobCode: String, newPassword: String): Result<Unit>
+
+    /**
      * Cierra la sesión actual.
      */
     suspend fun logout()

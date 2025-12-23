@@ -34,14 +34,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             SIGCTheme {
                 val startDestination by viewModel.startDestination.collectAsState()
+                val isLoading by viewModel.isLoading.collectAsState()
 
                 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
                 val windowSize = calculateWindowSizeClass(this)
 
-                SigcNavHost(
-                    startDestination = startDestination,
-                    windowSize = windowSize.widthSizeClass
-                )
+                if (!isLoading) {
+                    SigcNavHost(
+                        startDestination = startDestination,
+                        windowSize = windowSize.widthSizeClass
+                    )
+                }
             }
         }
     }

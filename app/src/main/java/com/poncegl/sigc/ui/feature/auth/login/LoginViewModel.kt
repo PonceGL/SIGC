@@ -70,14 +70,20 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginUiEvent.OnSubmitClicked -> {
-                if (_uiState.value.authMode == AuthMode.LOGIN) performLogin() else performRegister()
+                when (_uiState.value.authMode) {
+                    AuthMode.LOGIN -> performLogin()
+                    AuthMode.REGISTER -> performRegister()
+                    AuthMode.RECOVER_PASSWORD -> performPasswordRecovery()
+                }
             }
 
             is LoginUiEvent.OnGoogleSignInClicked -> {
                 performGoogleSignIn(event.context)
             }
-            // TODO: Implementar luego los clicks de Facebook/Olvidé contraseña
-            else -> {}
+
+            is LoginUiEvent.OnFacebookSignInClicked -> {
+                // TODO: implementar
+            }
         }
     }
 
@@ -94,17 +100,21 @@ class LoginViewModel @Inject constructor(
     private fun calculateValidation(state: LoginUiState): Boolean {
         if (state.isLoading) return false
 
-        return if (state.authMode == AuthMode.LOGIN) {
+        return when (state.authMode) {
+            AuthMode.LOGIN -> {
+                state.isEmailValid && state.password.isNotBlank()
+            }
+            AuthMode.REGISTER -> {
+                val isNameValid = state.name.matches(nameRegex)
+                val isEmailValid = state.isEmailValid
+                val isPasswordValid = state.password.isNotEmpty()
+                val doPasswordsMatch = state.password == state.confirmPassword
 
-            state.isEmailValid && state.password.isNotBlank()
-        } else {
-
-            val isNameValid = state.name.matches(nameRegex)
-            val isEmailValid = state.isEmailValid
-            val isPasswordValid = state.password.isNotEmpty()
-            val doPasswordsMatch = state.password == state.confirmPassword
-
-            isNameValid && isEmailValid && isPasswordValid && doPasswordsMatch
+                isNameValid && isEmailValid && isPasswordValid && doPasswordsMatch
+            }
+            AuthMode.RECOVER_PASSWORD -> {
+                state.isEmailValid
+            }
         }
     }
 
@@ -136,6 +146,30 @@ class LoginViewModel @Inject constructor(
                 currentState.password
             )
             handleAuthResult(result)
+        }
+    }
+
+    private fun performPasswordRecovery() {
+        val currentState = _uiState.value
+
+        if (!currentState.isEmailValid) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, isSubmitEnabled = false) }
+            val result = authRepository.sendPasswordResetEmail(currentState.email)
+            
+            _uiState.update { it.copy(isLoading = false) }
+            
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(isRecoveryEmailSent = true) }
+                    _uiEffect.send(LoginUiEffect.ShowMessage("Correo de recuperación enviado"))
+                },
+                onFailure = { exception ->
+                    sendErrorEffect(exception.message ?: "Error al enviar correo")
+                    _uiState.update { it.copy(isSubmitEnabled = true) }
+                }
+            )
         }
     }
 

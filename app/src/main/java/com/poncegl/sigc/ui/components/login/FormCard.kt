@@ -10,24 +10,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcTextField
 import com.poncegl.sigc.ui.feature.auth.login.AuthMode
 import com.poncegl.sigc.ui.feature.auth.login.LoginUiEvent
@@ -102,7 +99,7 @@ fun LoginFormCard(
         }
 
         val isEmailLastField = state.authMode == AuthMode.RECOVER_PASSWORD
-        
+
         SigcTextField(
             value = state.email,
             onValueChange = { onEvent(LoginUiEvent.OnEmailChanged(it)) },
@@ -123,10 +120,11 @@ fun LoginFormCard(
             exit = shrinkVertically() + fadeOut()
         ) {
             Column {
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 val isPasswordLastField = state.authMode == AuthMode.LOGIN
-                
+
                 SigcTextField(
                     value = state.password,
                     onValueChange = { onEvent(LoginUiEvent.OnPasswordChanged(it)) },
@@ -142,6 +140,7 @@ fun LoginFormCard(
                 )
 
                 if (state.authMode == AuthMode.REGISTER) {
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     SigcTextField(
@@ -186,24 +185,12 @@ fun LoginFormCard(
             AuthMode.RECOVER_PASSWORD -> "Enviar correo"
         }
 
-        Button(
+        SigcButton(
+            text = buttonText,
             onClick = { onEvent(LoginUiEvent.OnSubmitClicked) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
+            modifier = Modifier.fillMaxWidth(),
             enabled = state.isSubmitEnabled
-        ) {
-            Text(
-                text = buttonText,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

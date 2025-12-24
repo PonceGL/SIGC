@@ -1,5 +1,6 @@
 package com.poncegl.sigc.ui.components.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,10 +16,6 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -38,9 +35,14 @@ data class FabMenuItem(
 fun FloatingActionMenu(
     widthSizeClass: WindowWidthSizeClass,
     items: List<FabMenuItem>,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = expanded) {
+        onExpandedChange(false)
+    }
 
     Column(
         horizontalAlignment = Alignment.End,
@@ -64,8 +66,8 @@ fun FloatingActionMenu(
 
         ScaffoldActionButton(
             widthSizeClass = widthSizeClass,
-            label = "Registrar paciente",
-            onClick = { expanded = !expanded }
+            label = "Acciones",
+            onClick = { onExpandedChange(!expanded) }
         )
     }
 }

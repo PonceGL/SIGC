@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -23,6 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,11 +35,19 @@ import com.poncegl.sigc.ui.feature.auth.login.LoginUiState
 
 @Composable
 fun LoginFormCard(
+    modifier: Modifier = Modifier,
     state: LoginUiState,
     onEvent: (LoginUiEvent) -> Unit,
     onNavigateToLegals: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(vertical = 20.dp)) {
+
+    val onSubmit = {
+        if (state.isSubmitEnabled) {
+            onEvent(LoginUiEvent.OnSubmitClicked)
+        }
+    }
+
+    Column(modifier = modifier.padding(vertical = 20.dp)) {
         AnimatedVisibility(
             visible = state.authMode != AuthMode.RECOVER_PASSWORD,
             enter = expandVertically() + fadeIn(),
@@ -84,19 +94,24 @@ fun LoginFormCard(
                     onValueChange = { onEvent(LoginUiEvent.OnNameChanged(it)) },
                     label = "Nombre completo",
                     icon = Icons.Default.Person,
-                    enabled = !state.isLoading
+                    enabled = !state.isLoading,
+                    imeAction = ImeAction.Next
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
+        val isEmailLastField = state.authMode == AuthMode.RECOVER_PASSWORD
+        
         SigcTextField(
             value = state.email,
             onValueChange = { onEvent(LoginUiEvent.OnEmailChanged(it)) },
             label = "Correo electrónico",
             icon = Icons.Default.Email,
             keyboardType = KeyboardType.Email,
-            enabled = !state.isLoading
+            enabled = !state.isLoading,
+            imeAction = if (isEmailLastField) ImeAction.Done else ImeAction.Next,
+            keyboardActions = if (isEmailLastField) KeyboardActions(onDone = { onSubmit() }) else KeyboardActions.Default
         )
 
         val showPasswordInput = (state.isEmailValid || state.authMode == AuthMode.REGISTER) &&
@@ -109,6 +124,9 @@ fun LoginFormCard(
         ) {
             Column {
                 Spacer(modifier = Modifier.height(16.dp))
+
+                val isPasswordLastField = state.authMode == AuthMode.LOGIN
+                
                 SigcTextField(
                     value = state.password,
                     onValueChange = { onEvent(LoginUiEvent.OnPasswordChanged(it)) },
@@ -118,7 +136,9 @@ fun LoginFormCard(
                     isPassword = true,
                     isPasswordVisible = state.isPasswordVisible,
                     onTogglePassword = { onEvent(LoginUiEvent.OnTogglePasswordVisibility) },
-                    enabled = !state.isLoading
+                    enabled = !state.isLoading,
+                    imeAction = if (isPasswordLastField) ImeAction.Done else ImeAction.Next,
+                    keyboardActions = if (isPasswordLastField) KeyboardActions(onDone = { onSubmit() }) else KeyboardActions.Default
                 )
 
                 if (state.authMode == AuthMode.REGISTER) {
@@ -133,7 +153,9 @@ fun LoginFormCard(
                         isPassword = true,
                         isPasswordVisible = state.isPasswordVisible,
                         onTogglePassword = { onEvent(LoginUiEvent.OnTogglePasswordVisibility) },
-                        enabled = !state.isLoading
+                        enabled = !state.isLoading,
+                        imeAction = ImeAction.Done,
+                        keyboardActions = KeyboardActions(onDone = { onSubmit() })
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))

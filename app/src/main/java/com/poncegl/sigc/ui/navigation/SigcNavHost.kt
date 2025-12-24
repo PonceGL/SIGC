@@ -29,6 +29,7 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
 
         composable(HomeDestination.route) {
             HomeScreen(
+                widthSizeClass = windowSize,
                 onNavigateToLogin = {
                     navController.navigate(LoginDestination.route) {
                         popUpTo(HomeDestination.route) {

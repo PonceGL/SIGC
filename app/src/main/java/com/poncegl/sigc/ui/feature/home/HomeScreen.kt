@@ -1,36 +1,27 @@
 package com.poncegl.sigc.ui.feature.home
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.poncegl.sigc.ui.components.home.EmptyContent
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun HomeScreen(
+    widthSizeClass: WindowWidthSizeClass,
     onNavigateToLogin: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
 
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    rememberListDetailPaneScaffoldNavigator<Any>()
+    rememberCoroutineScope()
+    BackNavigationBehavior.PopUntilScaffoldValueChange
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -40,54 +31,88 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp)
-                .padding(vertical = 10.dp)
-                .imePadding(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Pantalla Home", style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+    EmptyContent(widthSizeClass)
 
-            Button(onClick = { showLogoutDialog = true }) {
-                Text("Cerrar Sesión")
-            }
-        }
-    }
+//    Scaffold(
+//        containerColor = MaterialTheme.colorScheme.background
+//    ) { paddingValues ->
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(paddingValues)
+//                .padding(vertical = 10.dp)
+//                .imePadding(),
+//            contentAlignment = Alignment.Center
+//        ) {
+//
+//            NavigableListDetailPaneScaffold(
+//                navigator = scaffoldNavigator,
+//                listPane = {
+//                    AnimatedPane {
+//                        HomeListPane(
+//                            items = mockHomeItems,
+//                            onItemClick = { item ->
+//                                scope.launch {
+//                                    scaffoldNavigator.navigateTo(
+//                                        ListDetailPaneScaffoldRole.Detail,
+//                                        item
+//                                    )
+//                                }
+//                            },
+//                            onLogoutClick = { showLogoutDialog = true }
+//                        )
+//                    }
+//                },
+//                detailPane = {
+//                    AnimatedPane {
+//                        // Se hace un cast seguro a HomeItem ya que contentKey es de tipo Any?
+//                        val selectedItem =
+//                            scaffoldNavigator.currentDestination?.content?.let { it as? HomeItem }
+//
+//                        // Determina si se debe mostrar el botón de cerrar/atrás
+//                        val showCloseButton =
+//                            scaffoldNavigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
+//
+//                        HomeDetailPane(
+//                            item = selectedItem,
+//                            showCloseButton = showCloseButton,
+//                            onClose = {
+//                                scope.launch {
+//                                    scaffoldNavigator.navigateBack(backNavigationBehavior)
+//                                }
+//                            }
+//                        )
+//                    }
+//                },
+//            )
+//
+//            if (showLogoutDialog) {
+//                AlertDialog(
+//                    onDismissRequest = { showLogoutDialog = false },
+//                    title = { Text(text = "Cerrar Sesión") },
+//                    text = { Text(text = "¿Estás seguro de que deseas salir de la aplicación?") },
+//                    confirmButton = {
+//                        TextButton(
+//                            onClick = {
+//                                showLogoutDialog = false
+//                                viewModel.onLogoutConfirmed()
+//                            }
+//                        ) {
+//                            Text("Salir")
+//                        }
+//                    },
+//                    dismissButton = {
+//                        TextButton(
+//                            onClick = { showLogoutDialog = false }
+//                        ) {
+//                            Text("Cancelar")
+//                        }
+//                    }
+//                )
+//            }
+//        }
+//
+//    }
 
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text(text = "Cerrar Sesión") },
-            text = { Text(text = "¿Estás seguro de que deseas salir de la aplicación?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        viewModel.onLogoutConfirmed()
-                    }
-                ) {
-                    Text("Salir")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false }
-                ) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
 }

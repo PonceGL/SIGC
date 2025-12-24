@@ -96,6 +96,9 @@ fun EmptyContent(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    
+                    HomeWelcomeGraphic(modifier = Modifier.padding(bottom = 20.dp))
+                    
                     Text(
                         text = "¡Bienvenido a $appName!",
                         style = MaterialTheme.typography.headlineSmall,

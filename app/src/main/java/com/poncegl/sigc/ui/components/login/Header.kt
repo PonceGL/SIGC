@@ -43,7 +43,6 @@ fun LoginHeader(
             shape = RoundedCornerShape(16.dp),
             color = background,
             modifier = Modifier.size(70.dp),
-//            shadowElevation = 4.dp
         ) {
 
             Box(contentAlignment = Alignment.Center) {
@@ -57,14 +56,17 @@ fun LoginHeader(
 
         }
 
-        Text(
-            text = if (state.authMode == AuthMode.LOGIN) "¡Bienvenido!" else "Crea tu cuenta",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (state.authMode != AuthMode.RECOVER_PASSWORD) {
+            Text(
+                text = if (state.authMode == AuthMode.LOGIN) "¡Bienvenido!" else "Crea tu cuenta",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
     }
 }
 

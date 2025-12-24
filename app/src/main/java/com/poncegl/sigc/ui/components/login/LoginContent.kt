@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.core.constants.UI
+import com.poncegl.sigc.ui.components.home.EmptyContent
 import com.poncegl.sigc.ui.feature.auth.login.AuthMode
 import com.poncegl.sigc.ui.feature.auth.login.LoginUiEvent
 import com.poncegl.sigc.ui.feature.auth.login.LoginUiState
@@ -91,11 +93,12 @@ fun LoginContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                if (widthSizeClass == WindowWidthSizeClass.Compact) {
-                    LoginFormCard(state, onEvent, onNavigateToLegals)
+                if (widthSizeClass != WindowWidthSizeClass.Expanded) {
+                    LoginFormCard(modifier = Modifier.widthIn(max = UI.MAX_WIDTH.dp), state = state, onEvent = onEvent, onNavigateToLegals = onNavigateToLegals)
                     Spacer(modifier = Modifier.height(24.dp))
                     if (state.authMode == AuthMode.LOGIN) {
                         SocialButtons(
+                            modifier = Modifier.widthIn(max = UI.MAX_WIDTH.dp),
                             onGoogleClick = {
                                 onEvent(LoginUiEvent.OnGoogleSignInClicked(context))
                             },
@@ -110,7 +113,7 @@ fun LoginContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
-                            LoginFormCard(state, onEvent, onNavigateToLegals)
+                            LoginFormCard(modifier = Modifier.widthIn(max = UI.MAX_WIDTH.dp), state = state, onEvent = onEvent, onNavigateToLegals = onNavigateToLegals)
                         }
                         Column(
                             modifier = Modifier
@@ -138,15 +141,9 @@ fun LoginContent(
     }
 }
 
-
-@Preview(
-    name = "1. Mobile Light - Login",
-    device = "id:pixel_5",
-    apiLevel = 31,
-    showBackground = true
-)
+@Preview(name = "1. Mobile Light", device = "id:pixel_5", showBackground = true)
 @Composable
-private fun PreviewLoginScreenLight() {
+private fun PreviewEmptyContentLight() {
     SIGCTheme(darkTheme = false) {
         LoginContent(
             state = LoginUiState(email = "test@email.com", isEmailValid = false),
@@ -159,14 +156,32 @@ private fun PreviewLoginScreenLight() {
 }
 
 @Preview(
-    name = "2. Mobile Dark - Register",
+    name = "2. Mobile Dark",
     device = "id:pixel_5",
-    apiLevel = 31,
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Composable
-private fun PreviewLoginScreenDarkRegister() {
+private fun PreviewEmptyContentDark() {
+    SIGCTheme(darkTheme = true) {
+        LoginContent(
+            state = LoginUiState(email = "test@email.com", isEmailValid = false),
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            snackbarHostState = remember { SnackbarHostState() },
+            onEvent = {},
+            onNavigateToLegals = {}
+        )
+    }
+}
+
+@Preview(
+    name = "3. Foldable Dark",
+    device = "id:pixel_fold",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun PreviewEmptyContentFoldDark() {
     SIGCTheme(darkTheme = true) {
         LoginContent(
             state = LoginUiState(authMode = AuthMode.REGISTER),
@@ -179,14 +194,13 @@ private fun PreviewLoginScreenDarkRegister() {
 }
 
 @Preview(
-    name = "3. Tablet Dark",
-    device = "spec:width=1280dp,height=800dp,dpi=240",
-    apiLevel = 31,
+    name = "4. Tablet Dark",
+    device = "id:pixel_tablet",
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Composable
-private fun PreviewLoginScreenTablet() {
+private fun PreviewEmptyContentTabletDark() {
     SIGCTheme(darkTheme = true) {
         LoginContent(
             state = LoginUiState(authMode = AuthMode.LOGIN, isEmailValid = true),

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.R
+import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.onboarding.slider.Slider
 import com.poncegl.sigc.ui.components.shared.PageIndicator
 import com.poncegl.sigc.ui.feature.onboarding.model.OnboardingPage
@@ -48,7 +50,7 @@ fun OnboardingContent(
             )
 
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).widthIn(max = UI.MAX_WIDTH.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -67,6 +69,7 @@ fun OnboardingContent(
             }
 
             NavigationButtons(
+                modifier = Modifier.widthIn(max = UI.MAX_WIDTH.dp),
                 showPrevious = currentPageIndex > 0,
                 isLast = currentPageIndex == pages.size - 1,
                 onPreviousClick = prevAction,

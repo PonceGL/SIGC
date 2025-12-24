@@ -27,13 +27,14 @@ import com.poncegl.sigc.ui.theme.SIGCTheme
 
 @Composable
 fun NavigationButtons(
+    modifier: Modifier = Modifier,
     showPrevious: Boolean,
     isLast: Boolean = false,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 

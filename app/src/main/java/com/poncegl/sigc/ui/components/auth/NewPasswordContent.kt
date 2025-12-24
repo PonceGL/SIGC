@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.login.SigcSnackbarVisuals
 import com.poncegl.sigc.ui.components.login.SnackbarType
 import com.poncegl.sigc.ui.components.shared.SigcTextField
@@ -79,7 +80,7 @@ fun NewPasswordContent(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 480.dp)
+                    .widthIn(max = UI.MAX_WIDTH.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

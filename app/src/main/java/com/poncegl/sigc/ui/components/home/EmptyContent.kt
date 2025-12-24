@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,7 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.BuildConfig
+import com.poncegl.sigc.R
+import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.shared.BasicHeader
+import com.poncegl.sigc.ui.components.shared.FabIcon
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
 @Composable
@@ -36,9 +40,33 @@ fun EmptyContent(
 ) {
     val appName = BuildConfig.APP_NAME
 
+    val fabItems = listOf(
+        FabMenuItem(
+            label = "Unirse a equipo",
+            icon = FabIcon.Vector(Icons.Default.QrCode),
+            contentDescription = "Unirse a un equipo existente",
+            onClick = { /* TODO: Implementar navegación a unirse a equipo */ }
+        ),
+        FabMenuItem(
+            label = "Crear equipo",
+            icon = FabIcon.Drawable(R.drawable.people),
+            contentDescription = "Crear equipo",
+            onClick = { /* TODO: Implementar navegación a crear equipo */ }
+        ),
+        FabMenuItem(
+            label = "Registrar paciente",
+            icon = FabIcon.Drawable(R.drawable.people_plus),
+            contentDescription = "Registrar paciente",
+            onClick = { /* TODO: Implementar navegación a registro de paciente */ }
+        )
+    )
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionMenu(widthSizeClass)
+            FloatingActionMenu(
+                widthSizeClass = widthSizeClass,
+                items = fabItems
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -64,7 +92,7 @@ fun EmptyContent(
 
                 Column(
                     modifier = Modifier
-                        .widthIn(max = 480.dp)
+                        .widthIn(max = UI.MAX_WIDTH.dp)
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -118,7 +146,7 @@ fun EmptyContent(
                             Icon(
                                 imageVector = Icons.Filled.Add,
                                 tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "Boón para registrar paciente nuevo"
+                                contentDescription = "Botón para registrar paciente nuevo"
                             )
 
                             Text(

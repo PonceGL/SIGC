@@ -1,6 +1,5 @@
 package com.poncegl.sigc.ui.components.home
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
@@ -24,17 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.poncegl.sigc.R
+import com.poncegl.sigc.ui.components.shared.FabIcon
 import com.poncegl.sigc.ui.components.shared.ScaffoldActionButton
-
-sealed interface FabIcon {
-    data class Vector(val imageVector: ImageVector) : FabIcon
-    data class Drawable(@DrawableRes val id: Int) : FabIcon
-}
 
 data class FabMenuItem(
     val label: String,
@@ -46,30 +37,10 @@ data class FabMenuItem(
 @Composable
 fun FloatingActionMenu(
     widthSizeClass: WindowWidthSizeClass,
+    items: List<FabMenuItem>,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    val items = listOf(
-        FabMenuItem(
-            label = "Unirse a equipo",
-            icon = FabIcon.Vector(Icons.Default.QrCode),
-            contentDescription = "Unirse a un equipo existente",
-            onClick = { /* TODO: Implementar navegación a unirse a equipo */ }
-        ),
-        FabMenuItem(
-            label = "Crear equipo",
-            icon = FabIcon.Drawable(R.drawable.people),
-            contentDescription = "Crear equipo",
-            onClick = { /* TODO: Implementar navegación a registro de paciente */ }
-        ),
-        FabMenuItem(
-            label = "Registrar paciente",
-            icon = FabIcon.Drawable(R.drawable.people_plus),
-            contentDescription = "Registrar paciente",
-            onClick = { /* TODO: Implementar navegación a unirse a equipo */ }
-        )
-    )
 
     Column(
         horizontalAlignment = Alignment.End,
@@ -91,7 +62,11 @@ fun FloatingActionMenu(
             }
         }
 
-        ScaffoldActionButton(widthSizeClass, onClick = { expanded = !expanded })
+        ScaffoldActionButton(
+            widthSizeClass = widthSizeClass,
+            label = "Registrar paciente",
+            onClick = { expanded = !expanded }
+        )
     }
 }
 

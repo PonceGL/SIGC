@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun HomeScreen(
     widthSizeClass: WindowWidthSizeClass,
     onNavigateToLogin: () -> Unit,
+    onNavigateToRegisterPatient: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
 
@@ -23,6 +24,7 @@ fun HomeScreen(
     rememberCoroutineScope()
     BackNavigationBehavior.PopUntilScaffoldValueChange
 
+    // TODO: esto es para cerrar sesión, por ahora nadie lo activa
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -31,7 +33,7 @@ fun HomeScreen(
         }
     }
 
-    EmptyContent(widthSizeClass)
+    EmptyContent(widthSizeClass, onNavigateToRegisterPatient)
 
 //    Scaffold(
 //        containerColor = MaterialTheme.colorScheme.background

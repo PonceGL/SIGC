@@ -30,7 +30,6 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(vertical = 10.dp)
                 .imePadding(),
             contentAlignment = Alignment.Center
         ) {

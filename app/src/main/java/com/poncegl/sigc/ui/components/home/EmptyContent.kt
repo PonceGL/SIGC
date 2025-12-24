@@ -49,6 +49,7 @@ import com.poncegl.sigc.ui.theme.SIGCTheme
 @Composable
 fun EmptyContent(
     widthSizeClass: WindowWidthSizeClass,
+    onNavigateToRegisterPatient: () -> Unit,
 ) {
     val appName = BuildConfig.APP_NAME
 
@@ -60,7 +61,7 @@ fun EmptyContent(
             icon = FabIcon.Vector(Icons.Default.QrCode),
             contentDescription = "Unirse a un equipo existente",
             onClick = {
-            /* TODO: Implementar navegación a unirse a equipo */
+                /* TODO: Implementar navegación a unirse a equipo */
                 isMenuExpanded = false
                 Log.i("FabMenuItem", "unirse a equipo")
             }
@@ -70,7 +71,7 @@ fun EmptyContent(
             icon = FabIcon.Drawable(R.drawable.people),
             contentDescription = "Crear equipo",
             onClick = {
-            /* TODO: Implementar navegación a crear equipo */
+                /* TODO: Implementar navegación a crear equipo */
                 isMenuExpanded = false
                 Log.i("FabMenuItem", "crear equipo")
             }
@@ -80,9 +81,10 @@ fun EmptyContent(
             icon = FabIcon.Drawable(R.drawable.people_plus),
             contentDescription = "Registrar paciente",
             onClick = {
-            /* TODO: Implementar navegación a registro de paciente */
+                /* TODO: Implementar navegación a registro de paciente */
                 isMenuExpanded = false
                 Log.i("FabMenuItem", "registro de paciente")
+                onNavigateToRegisterPatient()
             }
         )
     )
@@ -229,7 +231,10 @@ fun EmptyContent(
 @Composable
 private fun PreviewEmptyContentLight() {
     SIGCTheme(darkTheme = false) {
-        EmptyContent(widthSizeClass = WindowWidthSizeClass.Compact)
+        EmptyContent(
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            onNavigateToRegisterPatient = {}
+        )
     }
 }
 
@@ -242,7 +247,10 @@ private fun PreviewEmptyContentLight() {
 @Composable
 private fun PreviewEmptyContentDark() {
     SIGCTheme(darkTheme = true) {
-        EmptyContent(widthSizeClass = WindowWidthSizeClass.Compact)
+        EmptyContent(
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            onNavigateToRegisterPatient = {}
+        )
     }
 }
 
@@ -255,7 +263,10 @@ private fun PreviewEmptyContentDark() {
 @Composable
 private fun PreviewEmptyContentFoldDark() {
     SIGCTheme(darkTheme = true) {
-        EmptyContent(widthSizeClass = WindowWidthSizeClass.Expanded)
+        EmptyContent(
+            widthSizeClass = WindowWidthSizeClass.Expanded,
+            onNavigateToRegisterPatient = {}
+        )
     }
 }
 
@@ -268,6 +279,9 @@ private fun PreviewEmptyContentFoldDark() {
 @Composable
 private fun PreviewEmptyContentTabletDark() {
     SIGCTheme(darkTheme = true) {
-        EmptyContent(widthSizeClass = WindowWidthSizeClass.Expanded)
+        EmptyContent(
+            widthSizeClass = WindowWidthSizeClass.Expanded,
+            onNavigateToRegisterPatient = {}
+        )
     }
 }

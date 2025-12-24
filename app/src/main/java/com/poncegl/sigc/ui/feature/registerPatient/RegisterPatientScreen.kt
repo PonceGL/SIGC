@@ -7,7 +7,6 @@ import com.poncegl.sigc.ui.components.registerPatient.RegisterPatientContent
 @Composable
 fun RegisterPatientScreen(
     widthSizeClass: WindowWidthSizeClass,
-    onNavigateToLogin: () -> Unit,
 ) {
 
     RegisterPatientContent(widthSizeClass = widthSizeClass)

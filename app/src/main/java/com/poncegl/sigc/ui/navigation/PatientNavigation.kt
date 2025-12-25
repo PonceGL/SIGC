@@ -14,6 +14,11 @@ fun NavGraphBuilder.patientGraph(
     composable(route = RegisterPatientDestination.route) {
         RegisterPatientScreen(
             widthSizeClass = widthSizeClass,
+            onNavigateToHome = {
+                navController.navigate(HomeDestination.route) {
+                    popUpTo(LoginDestination.route) { inclusive = true }
+                }
+            }
         )
     }
 

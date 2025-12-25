@@ -1,7 +1,6 @@
 package com.poncegl.sigc.ui.components.registerPatient
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -42,7 +41,7 @@ sealed class RegisterPatientStep(val title: String) {
 }
 
 @Composable
-fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass) {
+fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHome: () -> Unit) {
 
     val steps = listOf(
         RegisterPatientStep.One,
@@ -57,8 +56,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass) {
         if (currentStepIndex > 0) {
             currentStepIndex--
         } else {
-            Log.d("RegisterPatientContent", "onBack - Salir del flujo")
-            // TODO: Aquí iría tu lógica para salir de la pantalla (ej. navigator.popBackStack())
+            onNavigateToHome()
         }
     }
 
@@ -169,7 +167,7 @@ fun StepFour() {
 @Composable
 private fun PreviewRegisterPatientLight() {
     SIGCTheme(darkTheme = false) {
-        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact)
+        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
     }
 }
 
@@ -182,6 +180,6 @@ private fun PreviewRegisterPatientLight() {
 @Composable
 private fun PreviewRegisterPatientDark() {
     SIGCTheme(darkTheme = true) {
-        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact)
+        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
     }
 }

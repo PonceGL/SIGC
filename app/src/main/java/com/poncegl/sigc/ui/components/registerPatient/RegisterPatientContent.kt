@@ -11,7 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +42,13 @@ sealed class RegisterPatientStep(val title: String) {
     object Four : RegisterPatientStep("4")
 }
 
+sealed class HeaderInformation(val title: String, val description: String) {
+    object One : HeaderInformation("Datos del paciente", "Información básica")
+    object Two : HeaderInformation("Medicamentos", "Tratamiento actual")
+    object Three : HeaderInformation("Doctor", "Médico tratante")
+    object Four : HeaderInformation("Historial", "Cronograma médico")
+}
+
 @Composable
 fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHome: () -> Unit) {
 
@@ -48,6 +57,13 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
         RegisterPatientStep.Two,
         RegisterPatientStep.Three,
         RegisterPatientStep.Four
+    )
+
+    val headerInfo = listOf(
+        HeaderInformation.One,
+        HeaderInformation.Two,
+        HeaderInformation.Three,
+        HeaderInformation.Four
     )
 
     var currentStepIndex by remember { mutableIntStateOf(0) }
@@ -60,7 +76,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
         }
     }
 
-    BackHandler(enabled = currentStepIndex > 0) {
+    BackHandler(enabled = true) {
         onBackAction()
     }
 
@@ -82,13 +98,15 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                val currentHeaderInfo = headerInfo[currentStepIndex]
+
                 HeaderAction(
-                    title = "Datos del paciente",
-                    description = "Información básica",
-                    startIconAction = {
-                        onBackAction()
-                    }
+                    title = currentHeaderInfo.title,
+                    description = currentHeaderInfo.description,
+                    startIconAction = { onBackAction() }
                 )
+
+                Spacer(modifier = Modifier.height(20.dp))
 
                 SigcStepper(
                     steps = steps,

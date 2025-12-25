@@ -106,7 +106,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                     startIconAction = { onBackAction() }
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 SigcStepper(
                     steps = steps,
@@ -117,6 +117,8 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                         SigcStepCircle(text = step.title, status = status)
                     }
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 AnimatedContent(
                     targetState = currentStepIndex,
@@ -146,7 +148,6 @@ fun StepOne() {
     Text(
         "Contenido de la pantalla de StepOne", modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(Color.Green.copy(alpha = 0.1f))
     )
 }
@@ -156,7 +157,6 @@ fun StepTwo() {
     Text(
         "Contenido de la pantalla de StepTwo", modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(Color.Yellow.copy(alpha = 0.1f))
     )
 }
@@ -166,7 +166,6 @@ fun StepThree() {
     Text(
         "Contenido de la pantalla de StepThree", modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(Color.Blue.copy(alpha = 0.1f))
     )
 }
@@ -176,7 +175,6 @@ fun StepFour() {
     Text(
         "Contenido de la pantalla de StepFour", modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(Color.Magenta.copy(alpha = 0.1f))
     )
 }

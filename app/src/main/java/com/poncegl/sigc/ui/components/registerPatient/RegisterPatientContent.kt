@@ -30,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.poncegl.sigc.R
 import com.poncegl.sigc.ui.components.shared.HeaderAction
+import com.poncegl.sigc.ui.components.shared.HeaderIcon
 import com.poncegl.sigc.ui.components.shared.SigcStepCircle
 import com.poncegl.sigc.ui.components.shared.SigcStepper
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -42,11 +44,30 @@ sealed class RegisterPatientStep(val title: String) {
     object Four : RegisterPatientStep("4")
 }
 
-sealed class HeaderInformation(val title: String, val description: String) {
-    object One : HeaderInformation("Datos del paciente", "Información básica")
-    object Two : HeaderInformation("Medicamentos", "Tratamiento actual")
-    object Three : HeaderInformation("Doctor", "Médico tratante")
-    object Four : HeaderInformation("Historial", "Cronograma médico")
+sealed class HeaderInformation(val title: String, val description: String, val icon: HeaderIcon) {
+    object One : HeaderInformation(
+        title = "Datos del paciente",
+        description = "Información básica",
+        icon = HeaderIcon.Drawable(R.drawable.person)
+    )
+
+    object Two : HeaderInformation(
+        title = "Medicamentos",
+        description = "Tratamiento actual",
+        icon = HeaderIcon.Drawable(R.drawable.medicine_capsule),
+    )
+
+    object Three : HeaderInformation(
+        title = "Doctor",
+        description = "Médico tratante",
+        icon = HeaderIcon.Drawable(R.drawable.stethoscope),
+    )
+
+    object Four : HeaderInformation(
+        title = "Historial",
+        description = "Cronograma médico",
+        icon = HeaderIcon.Drawable(R.drawable.history),
+    )
 }
 
 @Composable
@@ -103,7 +124,8 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                 HeaderAction(
                     title = currentHeaderInfo.title,
                     description = currentHeaderInfo.description,
-                    startIconAction = { onBackAction() }
+                    startIconAction = { onBackAction() },
+                    endIcon = currentHeaderInfo.icon,
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))

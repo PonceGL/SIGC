@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -75,8 +73,6 @@ sealed class HeaderInformation(val title: String, val description: String, val i
 @Composable
 fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHome: () -> Unit) {
 
-    val scrollState = rememberScrollState()
-
     val steps = listOf(
         RegisterPatientStep.One,
         RegisterPatientStep.Two,
@@ -124,8 +120,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp)
-                    .verticalScroll(scrollState),
+                    .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -156,14 +151,13 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                     targetState = currentStepIndex,
                     transitionSpec = {
                         fadeIn(animationSpec = tween(300)) togetherWith fadeOut(
-                            animationSpec = tween(
-                                300
-                            )
+                            animationSpec = tween(300)
                         )
                     },
                     label = "StepContentAnimation"
                 ) { targetIndex ->
                     when (steps[targetIndex]) {
+
                         RegisterPatientStep.One -> PatientData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
                             onContinueAction = {
@@ -171,7 +165,17 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                             }
                         )
 
-                        RegisterPatientStep.Two -> StepTwo()
+                        RegisterPatientStep.Two -> MedicationsData(
+                            widthSizeClass = WindowWidthSizeClass.Compact,
+                            onAddMedicationAction = {},
+                            onBackAction = {
+                                onBackAction()
+                            },
+                            onContinueAction = {
+                                onNextAction()
+                            }
+                        )
+
                         RegisterPatientStep.Three -> StepThree()
                         RegisterPatientStep.Four -> StepFour()
                     }
@@ -179,24 +183,6 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
             }
         }
     }
-}
-
-@Composable
-fun StepOne() {
-    Text(
-        "Contenido de la pantalla de StepOne", modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Green.copy(alpha = 0.1f))
-    )
-}
-
-@Composable
-fun StepTwo() {
-    Text(
-        "Contenido de la pantalla de StepTwo", modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Yellow.copy(alpha = 0.1f))
-    )
 }
 
 @Composable
@@ -264,3 +250,4 @@ private fun PatientDataTabletDark() {
         RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
     }
 }
+

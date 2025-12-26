@@ -102,7 +102,7 @@ fun HeaderAction(
             ) { targetDescription ->
                 Text(
                     text = targetDescription,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Left,

@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,7 @@ import java.util.Calendar
 
 @Composable
 fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Unit) {
+    val scrollState = rememberScrollState()
     var patientName by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf<Long?>(null) }
     var age by remember { mutableStateOf("") }
@@ -68,7 +71,8 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
     Column(
         modifier = Modifier
             .widthIn(max = UI.MAX_WIDTH.dp)
-            .fillMaxSize(),
+            .fillMaxSize()
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
     ) {
@@ -172,6 +176,8 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
                 modifier = Modifier.heightIn(130.dp),
                 singleLine = false
             )
+
+            Spacer(modifier = Modifier.weight(1f))
 
             SigcButton(
                 text = "Continuar",

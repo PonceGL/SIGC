@@ -71,7 +71,11 @@ sealed class HeaderInformation(val title: String, val description: String, val i
 }
 
 @Composable
-fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHome: () -> Unit) {
+fun RegisterPatientContent(
+    widthSizeClass: WindowWidthSizeClass,
+    onAddMedicationAction: () -> Unit,
+    onNavigateToHome: () -> Unit
+) {
 
     val steps = listOf(
         RegisterPatientStep.One,
@@ -167,7 +171,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
 
                         RegisterPatientStep.Two -> MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
-                            onAddMedicationAction = {},
+                            onAddMedicationAction = onAddMedicationAction,
                             onBackAction = {
                                 onBackAction()
                             },
@@ -208,7 +212,11 @@ fun StepFour() {
 @Composable
 private fun PatientDataLight() {
     SIGCTheme(darkTheme = false) {
-        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
+        RegisterPatientContent(
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            onAddMedicationAction = {},
+            onNavigateToHome = {}
+        )
     }
 }
 
@@ -221,7 +229,11 @@ private fun PatientDataLight() {
 @Composable
 private fun PatientDataDark() {
     SIGCTheme(darkTheme = true) {
-        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
+        RegisterPatientContent(
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            onAddMedicationAction = {},
+            onNavigateToHome = {}
+        )
     }
 }
 
@@ -234,7 +246,11 @@ private fun PatientDataDark() {
 @Composable
 private fun PatientDataFoldDark() {
     SIGCTheme(darkTheme = true) {
-        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
+        RegisterPatientContent(
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            onAddMedicationAction = {},
+            onNavigateToHome = {}
+        )
     }
 }
 
@@ -247,7 +263,11 @@ private fun PatientDataFoldDark() {
 @Composable
 private fun PatientDataTabletDark() {
     SIGCTheme(darkTheme = true) {
-        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
+        RegisterPatientContent(
+            widthSizeClass = WindowWidthSizeClass.Compact,
+            onAddMedicationAction = {},
+            onNavigateToHome = {}
+        )
     }
 }
 

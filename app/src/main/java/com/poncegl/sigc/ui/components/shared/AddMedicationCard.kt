@@ -50,7 +50,7 @@ fun AddMedicationCard(onAction: () -> Unit) {
                 Icon(
                     painter = painterResource(id = R.drawable.medicine_capsule),
                     contentDescription = null,
-                    modifier = Modifier.size(100.dp),
+                    modifier = Modifier.size(80.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

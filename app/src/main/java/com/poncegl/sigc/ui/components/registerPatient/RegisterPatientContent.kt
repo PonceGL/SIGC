@@ -117,6 +117,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(vertical = 10.dp)
                 .imePadding(),
             contentAlignment = Alignment.Center
         ) {

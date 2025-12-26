@@ -45,6 +45,7 @@ fun SigcTextField(
     isPasswordVisible: Boolean = false,
     onTogglePassword: (() -> Unit)? = null,
     enabled: Boolean = true,
+    singleLine: Boolean = true,
 ) {
     OutlinedTextField(
         value = value,
@@ -64,7 +65,7 @@ fun SigcTextField(
             }
         } else null,
         modifier = modifier.fillMaxWidth(),
-        singleLine = true,
+        singleLine = singleLine,
         enabled = enabled,
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType,

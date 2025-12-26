@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -73,6 +75,8 @@ sealed class HeaderInformation(val title: String, val description: String, val i
 @Composable
 fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHome: () -> Unit) {
 
+    val scrollState = rememberScrollState()
+
     val steps = listOf(
         RegisterPatientStep.One,
         RegisterPatientStep.Two,
@@ -88,6 +92,10 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
     )
 
     var currentStepIndex by remember { mutableIntStateOf(0) }
+
+    val onNextAction = {
+        currentStepIndex++
+    }
 
     val onBackAction = {
         if (currentStepIndex > 0) {
@@ -115,7 +123,8 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -134,7 +143,7 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                     steps = steps,
                     currentStepIndex = currentStepIndex,
                     onStepClick = { index -> currentStepIndex = index },
-                    isNavigationEnabled = true,
+                    isNavigationEnabled = false,
                     stepIndicator = { step, _, status ->
                         SigcStepCircle(text = step.title, status = status)
                     }
@@ -154,7 +163,13 @@ fun RegisterPatientContent(widthSizeClass: WindowWidthSizeClass, onNavigateToHom
                     label = "StepContentAnimation"
                 ) { targetIndex ->
                     when (steps[targetIndex]) {
-                        RegisterPatientStep.One -> StepOne()
+                        RegisterPatientStep.One -> PatientData(
+                            widthSizeClass = WindowWidthSizeClass.Compact,
+                            onContinueAction = {
+                                onNextAction()
+                            }
+                        )
+
                         RegisterPatientStep.Two -> StepTwo()
                         RegisterPatientStep.Three -> StepThree()
                         RegisterPatientStep.Four -> StepFour()
@@ -201,9 +216,10 @@ fun StepFour() {
     )
 }
 
+
 @Preview(name = "1. Mobile Light", device = "id:pixel_5", showBackground = true)
 @Composable
-private fun PreviewRegisterPatientLight() {
+private fun PatientDataLight() {
     SIGCTheme(darkTheme = false) {
         RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
     }
@@ -216,7 +232,33 @@ private fun PreviewRegisterPatientLight() {
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Composable
-private fun PreviewRegisterPatientDark() {
+private fun PatientDataDark() {
+    SIGCTheme(darkTheme = true) {
+        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
+    }
+}
+
+@Preview(
+    name = "3. Foldable Dark",
+    device = "id:pixel_fold",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun PatientDataFoldDark() {
+    SIGCTheme(darkTheme = true) {
+        RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
+    }
+}
+
+@Preview(
+    name = "4. Tablet Dark",
+    device = "id:pixel_tablet",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun PatientDataTabletDark() {
     SIGCTheme(darkTheme = true) {
         RegisterPatientContent(widthSizeClass = WindowWidthSizeClass.Compact, onNavigateToHome = {})
     }

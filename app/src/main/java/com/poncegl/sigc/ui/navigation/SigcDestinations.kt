@@ -51,3 +51,7 @@ object PatientListDestination : SigcDestination {
 object MedicationListDestination : SigcDestination {
     override val route = "medication_list"
 }
+
+object RegisterPatientDestination : SigcDestination {
+    override val route = "register_patient"
+}

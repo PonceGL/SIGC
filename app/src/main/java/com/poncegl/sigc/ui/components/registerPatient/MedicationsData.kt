@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.core.constants.UI
+import com.poncegl.sigc.ui.components.medications.RegisterMedication
 import com.poncegl.sigc.ui.components.shared.AddMedicationCard
 import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcButtonType
@@ -37,6 +38,7 @@ import com.poncegl.sigc.ui.theme.SIGCTheme
 @Composable
 fun MedicationsData(
     widthSizeClass: WindowWidthSizeClass,
+    isShowingMedicationForm: Boolean,
     onAddMedicationAction: () -> Unit,
     onBackAction: () -> Unit,
     onContinueAction: () -> Unit
@@ -47,48 +49,55 @@ fun MedicationsData(
         modifier = Modifier
             .widthIn(max = UI.MAX_WIDTH.dp)
             .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Text(
-                text = "Agrega los medicamentos que toma el paciente. Puedes agregar más después.",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Left,
+        if (isShowingMedicationForm) {
+            RegisterMedication(
+                widthSizeClass = widthSizeClass,
+                onRegisterMedication = {}
             )
+        } else {
 
-            AddMedicationCard(onAction = onAddMedicationAction)
-        }
+            Column(
+                modifier = Modifier
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Text(
+                    text = "Agrega los medicamentos que toma el paciente. Puedes agregar más después.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Left,
+                )
 
-        Spacer(modifier = Modifier.weight(1f))
+                AddMedicationCard(onAction = onAddMedicationAction)
+            }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+            Spacer(modifier = Modifier.weight(weight = 1f))
 
-            SigcButton(
-                text = "Anterior",
-                onClick = { onBackAction() },
-                modifier = Modifier.weight(1f),
-                type = SigcButtonType.Outlined,
-                startIcon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
 
-            SigcButton(
-                text = "Siguiente",
-                onClick = { onContinueAction() },
-                modifier = Modifier.weight(1f),
-                type = SigcButtonType.Primary,
-                endIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
-            )
+                SigcButton(
+                    text = "Anterior",
+                    onClick = { onBackAction() },
+                    modifier = Modifier.weight(1f),
+                    type = SigcButtonType.Outlined,
+                    startIcon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
+                )
+
+                SigcButton(
+                    text = "Siguiente",
+                    onClick = { onContinueAction() },
+                    modifier = Modifier.weight(1f),
+                    type = SigcButtonType.Primary,
+                    endIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
+                )
+            }
         }
     }
 }
@@ -119,6 +128,7 @@ private fun MedicationsDataLight() {
 
                         MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
+                            isShowingMedicationForm = false,
                             onAddMedicationAction = {},
                             onBackAction = {},
                             onContinueAction = {}
@@ -161,6 +171,7 @@ private fun MedicationsDataDark() {
 
                         MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
+                            isShowingMedicationForm = false,
                             onAddMedicationAction = {},
                             onBackAction = {},
                             onContinueAction = {}
@@ -203,6 +214,7 @@ private fun MedicationsDataFoldDark() {
 
                         MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Expanded,
+                            isShowingMedicationForm = true,
                             onAddMedicationAction = {},
                             onBackAction = {},
                             onContinueAction = {}
@@ -245,6 +257,7 @@ private fun MedicationsDataTabletDark() {
 
                         MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Expanded,
+                            isShowingMedicationForm = false,
                             onAddMedicationAction = {},
                             onBackAction = {},
                             onContinueAction = {}

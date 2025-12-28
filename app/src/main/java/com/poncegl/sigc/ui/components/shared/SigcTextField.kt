@@ -37,6 +37,7 @@ fun SigcTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    placeholder: String? = null,
     icon: ImageVector? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
@@ -51,6 +52,7 @@ fun SigcTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
+        placeholder = placeholder?.let { { Text(it) } },
         leadingIcon = if (icon != null) {
             { Icon(imageVector = icon, contentDescription = null) }
         } else null,
@@ -139,7 +141,7 @@ private fun PreviewSigcTextFieldDarkPassword() {
                     icon = Icons.Default.Lock,
                     keyboardType = KeyboardType.Password,
                     isPassword = true,
-                    isPasswordVisible = false, // Simulamos estado oculto
+                    isPasswordVisible = false,
                     onTogglePassword = {}
                 )
             }
@@ -162,7 +164,7 @@ private fun PreviewSigcTextFieldNoIcon() {
                     value = "Juan Pérez",
                     onValueChange = {},
                     label = "Nombre completo",
-                    icon = null // Probamos que no rompa el layout
+                    icon = null
                 )
             }
         }
@@ -186,6 +188,29 @@ private fun PreviewSigcTextFieldDisabled() {
                     label = "Campo deshabilitado",
                     icon = Icons.Default.Email,
                     enabled = false
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "5. Con Placeholder",
+    device = "id:pixel_5",
+    apiLevel = 31,
+    showBackground = true
+)
+@Composable
+private fun PreviewSigcTextFieldWithPlaceholder() {
+    SIGCTheme(darkTheme = false) {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SigcTextField(
+                    value = "",
+                    onValueChange = {},
+                    label = "Correo electrónico",
+                    placeholder = "ej: usuario@dominio.com",
+                    icon = Icons.Default.Email
                 )
             }
         }

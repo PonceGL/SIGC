@@ -73,6 +73,7 @@ sealed class HeaderInformation(val title: String, val description: String, val i
 @Composable
 fun RegisterPatientContent(
     widthSizeClass: WindowWidthSizeClass,
+    isShowingMedicationForm: Boolean = false,
     onAddMedicationAction: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
@@ -171,6 +172,7 @@ fun RegisterPatientContent(
 
                         RegisterPatientStep.Two -> MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
+                            isShowingMedicationForm = isShowingMedicationForm,
                             onAddMedicationAction = onAddMedicationAction,
                             onBackAction = {
                                 onBackAction()

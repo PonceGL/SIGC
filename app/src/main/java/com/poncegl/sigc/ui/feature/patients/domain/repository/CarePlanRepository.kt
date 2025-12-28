@@ -27,21 +27,30 @@ interface CarePlanRepository {
 
     /**
      * Obtiene los medicamentos asociados a un plan específico.
+     * @param patientId ID del paciente (necesario para la ruta).
      */
-    fun getMedicationsByPlan(carePlanId: String): Flow<List<Medication>>
+    fun getMedicationsByPlan(patientId: String, carePlanId: String): Flow<List<Medication>>
 
     /**
      * Agrega un medicamento al inventario/plan del paciente.
+     * @param patientId ID del paciente (necesario para la ruta).
+     * @param medication El objeto medicamento a guardar.
      */
-    suspend fun addMedication(medication: Medication): Result<String>
+    suspend fun addMedication(patientId: String, medication: Medication): Result<String>
 
     /**
      * Actualiza un medicamento (ej. cambiar dosis o stock).
+     * @param patientId ID del paciente (necesario para la ruta).
      */
-    suspend fun updateMedication(medication: Medication): Result<Unit>
+    suspend fun updateMedication(patientId: String, medication: Medication): Result<Unit>
 
     /**
      * Elimina un medicamento.
+     * @param patientId ID del paciente (necesario para la ruta).
      */
-    suspend fun deleteMedication(medicationId: String, carePlanId: String): Result<Unit>
+    suspend fun deleteMedication(
+        patientId: String,
+        carePlanId: String,
+        medicationId: String
+    ): Result<Unit>
 }

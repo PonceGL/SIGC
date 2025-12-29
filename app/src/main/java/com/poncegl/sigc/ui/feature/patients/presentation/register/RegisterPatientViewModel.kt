@@ -1,6 +1,5 @@
 package com.poncegl.sigc.ui.feature.patients.presentation.register
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poncegl.sigc.core.util.NetworkMonitor
@@ -8,6 +7,7 @@ import com.poncegl.sigc.ui.feature.patients.domain.model.CarePlan
 import com.poncegl.sigc.ui.feature.patients.domain.model.Medication
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationConfig
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationInventory
+import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
 import com.poncegl.sigc.ui.feature.patients.domain.model.Patient
 import com.poncegl.sigc.ui.feature.patients.domain.usecase.AddMedicationUseCase
 import com.poncegl.sigc.ui.feature.patients.domain.usecase.CreateCarePlanUseCase
@@ -69,7 +69,6 @@ class RegisterPatientViewModel @Inject constructor(
                 } catch (e: Exception) {
                     ""
                 }
-
                 it.copy(
                     patientDob = event.date,
                     isDobUnknown = false,
@@ -91,17 +90,11 @@ class RegisterPatientViewModel @Inject constructor(
 
             // --- Paso 2: Gestión Medicamentos ---
             is RegisterPatientEvent.StartAddingMedication -> _uiState.update {
-                it.copy(
-                    isAddingMedication = true,
-                    medicationForm = MedicationFormState()
-                )
+                it.copy(isAddingMedication = true, medicationForm = MedicationFormState())
             }
 
             is RegisterPatientEvent.CancelAddingMedication -> _uiState.update {
-                it.copy(
-                    isAddingMedication = false,
-                    medicationForm = MedicationFormState()
-                )
+                it.copy(isAddingMedication = false, medicationForm = MedicationFormState())
             }
 
             is RegisterPatientEvent.SaveMedicationToList -> addMedicationToDraft()
@@ -112,6 +105,34 @@ class RegisterPatientViewModel @Inject constructor(
             }
 
             // --- Paso 2: Inputs Formulario ---
+            is RegisterPatientEvent.MedPresentationChanged -> updateMedForm {
+                event.presentation.getInventoryConfig()
+
+                // Si es líquido -> mL, si es sólido -> mg (o nada), si es crema -> g
+                val suggestedDoseUnit = when (event.presentation) {
+                    MedicationPresentation.SYRUP,
+                    MedicationPresentation.SUSPENSION,
+                    MedicationPresentation.LOTION,
+                    MedicationPresentation.DROPS,
+                    MedicationPresentation.INJECTION -> "mL" // Inyecciones suelen ser mL
+
+                    MedicationPresentation.CREAM,
+                    MedicationPresentation.OINTMENT,
+                    MedicationPresentation.GEL,
+                    MedicationPresentation.POWDER -> "g"
+
+                    MedicationPresentation.INHALER,
+                    MedicationPresentation.SPRAY -> "dosis"
+
+                    else -> "mg" // Default para pastillas
+                }
+
+                it.copy(
+                    presentation = event.presentation,
+                    unit = suggestedDoseUnit
+                )
+            }
+
             is RegisterPatientEvent.MedNameChanged -> updateMedForm { it.copy(name = event.name) }
             is RegisterPatientEvent.MedDoseChanged -> updateMedForm { it.copy(dose = event.dose) }
             is RegisterPatientEvent.MedUnitChanged -> updateMedForm { it.copy(unit = event.unit) }
@@ -131,6 +152,7 @@ class RegisterPatientViewModel @Inject constructor(
             is RegisterPatientEvent.MedUnitsPerPackageChanged -> updateMedForm {
                 it.copy(unitsPerPackage = event.value)
             }
+
             is RegisterPatientEvent.MedPackageCountChanged -> updateMedForm {
                 it.copy(packageCount = event.value)
             }
@@ -140,11 +162,9 @@ class RegisterPatientViewModel @Inject constructor(
                 it.copy(stockAlertThreshold = newThreshold)
             }
 
-            // --- Paso 3: Doctor ---
+            // --- Paso 3 y 4 ---
             is RegisterPatientEvent.DoctorNameChanged -> _uiState.update { it.copy(doctorName = event.name) }
             is RegisterPatientEvent.DoctorPhoneChanged -> _uiState.update { it.copy(doctorPhone = event.phone) }
-
-            // --- Paso 4: Historial ---
             is RegisterPatientEvent.EventDescriptionChanged -> _uiState.update {
                 it.copy(
                     eventDescription = event.desc
@@ -193,18 +213,17 @@ class RegisterPatientViewModel @Inject constructor(
             "Según indicación"
         }
 
+        // CÁLCULO DE STOCK
         val units = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
         val packs = form.packageCount.toDoubleOrNull() ?: 0.0
         val totalStock = units * packs
 
+        val stockUnit = form.presentation.getInventoryConfig().defaultUnit
+
         val inventoryObj = if (totalStock > 0.0) {
             MedicationInventory(
                 currentStock = totalStock,
-                // Aquí podríamos usar form.unit (ej: "ampolletas") si queremos ser específicos,
-                // o "Unidades" como genérico. Usaremos la unidad que definió el usuario arriba (mg, ml, tabs).
-                // Pero ojo: Si la unidad arriba es "mg" (dosis), el stock no son "mg", son "Tabletas".
-                // Para este MVP, usaremos "Unidades" genérico para no complicar con otro input de texto.
-                unit = "Unidades",
+                unit = stockUnit,
                 alertThreshold = form.stockAlertThreshold.toIntOrNull() ?: 0
             )
         } else null
@@ -212,6 +231,7 @@ class RegisterPatientViewModel @Inject constructor(
         val draft = DraftMedication(
             tempId = UUID.randomUUID().toString(),
             name = form.name,
+            presentation = form.presentation,
             config = MedicationConfig(
                 dose = "${form.dose} ${form.unit}",
                 frequencyDescription = freqDesc,
@@ -282,6 +302,7 @@ class RegisterPatientViewModel @Inject constructor(
                     carePlanId = carePlanId,
                     name = draft.name,
                     type = draft.type,
+                    presentation = draft.presentation,
                     inventory = draft.inventory,
                     config = draft.config,
                     instructions = draft.instructions,

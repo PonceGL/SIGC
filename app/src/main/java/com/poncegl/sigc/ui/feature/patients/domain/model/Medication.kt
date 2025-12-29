@@ -27,6 +27,7 @@ data class Medication(
     val carePlanId: String,
     val name: String,
     val type: MedicationType = MedicationType.MEDICINE,
+    val presentation: MedicationPresentation? = null,
     val inventory: MedicationInventory? = null,
     val config: MedicationConfig,
     val instructions: String? = null,

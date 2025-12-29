@@ -1,5 +1,6 @@
 package com.poncegl.sigc.ui.feature.patients.presentation.register
 
+import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -25,6 +26,7 @@ sealed interface RegisterPatientEvent {
 
     // Paso 2: Medicamentos (Formulario Inputs)
     data class MedNameChanged(val name: String) : RegisterPatientEvent
+    data class MedPresentationChanged(val presentation: MedicationPresentation) : RegisterPatientEvent
     data class MedDoseChanged(val dose: String) : RegisterPatientEvent
     data class MedUnitChanged(val unit: String) : RegisterPatientEvent
     data class MedAddFrequencyTime(val time: LocalTime) : RegisterPatientEvent

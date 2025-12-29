@@ -30,9 +30,11 @@ sealed interface RegisterPatientEvent {
     data class MedAddFrequencyTime(val time: LocalTime) : RegisterPatientEvent
     data class MedRemoveFrequencyTime(val time: LocalTime) : RegisterPatientEvent
     data class MedDurationChanged(val days: String) : RegisterPatientEvent
-    data class MedStockChanged(val stock: String) : RegisterPatientEvent
+    data class MedUnitsPerPackageChanged(val value: String) : RegisterPatientEvent
+    data class MedPackageCountChanged(val value: String) : RegisterPatientEvent
     data class MedInstructionsChanged(val text: String) : RegisterPatientEvent
     data class MedReasonChanged(val reason: String) : RegisterPatientEvent
+    data class MedAlertSwitchToggled(val enabled: Boolean) : RegisterPatientEvent
 
     // Paso 3: Doctor
     data class DoctorNameChanged(val name: String) : RegisterPatientEvent

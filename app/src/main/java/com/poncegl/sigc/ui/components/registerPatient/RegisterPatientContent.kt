@@ -93,7 +93,9 @@ fun RegisterPatientContent(
     val currentStepIndex = state.currentStep
 
     val onBackAction = {
-        if (state.currentStep > 1) {
+        if (state.currentStep == 1 && state.isAddingMedication) {
+            onEvent(RegisterPatientEvent.CancelAddingMedication)
+        } else if (state.currentStep > 1) {
             onEvent(RegisterPatientEvent.PreviousStep)
         } else {
             onNavigateToHome()

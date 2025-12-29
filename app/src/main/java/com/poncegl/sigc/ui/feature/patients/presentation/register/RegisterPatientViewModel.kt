@@ -45,16 +45,6 @@ class RegisterPatientViewModel @Inject constructor(
         when (event) {
             is RegisterPatientEvent.NextStep -> {
                 if (validateCurrentStep()) {
-                    Log.i("RegisterPatientViewModel", "======================================")
-                    Log.i("RegisterPatientViewModel", "NextStep")
-                    Log.i("RegisterPatientViewModel", "patientName: ${_uiState.value.patientName}")
-                    Log.i("RegisterPatientViewModel", "patientDob: ${_uiState.value.patientDob}")
-                    Log.i(
-                        "RegisterPatientViewModel",
-                        "diagnosisName: ${_uiState.value.diagnosisName}"
-                    )
-                    Log.i("RegisterPatientViewModel", "State.value: ${_uiState.value}")
-                    Log.i("RegisterPatientViewModel", "======================================")
                     _uiState.update { it.copy(currentStep = it.currentStep + 1) }
                 }
             }
@@ -126,18 +116,28 @@ class RegisterPatientViewModel @Inject constructor(
             is RegisterPatientEvent.MedDoseChanged -> updateMedForm { it.copy(dose = event.dose) }
             is RegisterPatientEvent.MedUnitChanged -> updateMedForm { it.copy(unit = event.unit) }
             is RegisterPatientEvent.MedDurationChanged -> updateMedForm { it.copy(durationDays = event.days) }
-            is RegisterPatientEvent.MedStockChanged -> updateMedForm { it.copy(stock = event.stock) }
             is RegisterPatientEvent.MedInstructionsChanged -> updateMedForm { it.copy(instructions = event.text) }
             is RegisterPatientEvent.MedReasonChanged -> updateMedForm { it.copy(usageReason = event.reason) }
 
             is RegisterPatientEvent.MedAddFrequencyTime -> updateMedForm {
-                // ORDENAMIENTO AUTOMÁTICO AL INSERTAR
                 val newTimes = (it.frequencyTimes + event.time).sorted()
                 it.copy(frequencyTimes = newTimes)
             }
 
             is RegisterPatientEvent.MedRemoveFrequencyTime -> updateMedForm {
                 it.copy(frequencyTimes = it.frequencyTimes - event.time)
+            }
+
+            is RegisterPatientEvent.MedUnitsPerPackageChanged -> updateMedForm {
+                it.copy(unitsPerPackage = event.value)
+            }
+            is RegisterPatientEvent.MedPackageCountChanged -> updateMedForm {
+                it.copy(packageCount = event.value)
+            }
+
+            is RegisterPatientEvent.MedAlertSwitchToggled -> updateMedForm {
+                val newThreshold = if (event.enabled) "5" else "0"
+                it.copy(stockAlertThreshold = newThreshold)
             }
 
             // --- Paso 3: Doctor ---
@@ -193,21 +193,31 @@ class RegisterPatientViewModel @Inject constructor(
             "Según indicación"
         }
 
+        val units = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
+        val packs = form.packageCount.toDoubleOrNull() ?: 0.0
+        val totalStock = units * packs
+
+        val inventoryObj = if (totalStock > 0.0) {
+            MedicationInventory(
+                currentStock = totalStock,
+                // Aquí podríamos usar form.unit (ej: "ampolletas") si queremos ser específicos,
+                // o "Unidades" como genérico. Usaremos la unidad que definió el usuario arriba (mg, ml, tabs).
+                // Pero ojo: Si la unidad arriba es "mg" (dosis), el stock no son "mg", son "Tabletas".
+                // Para este MVP, usaremos "Unidades" genérico para no complicar con otro input de texto.
+                unit = "Unidades",
+                alertThreshold = form.stockAlertThreshold.toIntOrNull() ?: 0
+            )
+        } else null
+
         val draft = DraftMedication(
-            tempId = UUID.randomUUID().toString(), // ID temporal local
+            tempId = UUID.randomUUID().toString(),
             name = form.name,
             config = MedicationConfig(
                 dose = "${form.dose} ${form.unit}",
                 frequencyDescription = freqDesc,
                 cronExpression = null
             ),
-            inventory = if (form.stock.isNotBlank()) {
-                MedicationInventory(
-                    currentStock = form.stock.toDoubleOrNull() ?: 0.0,
-                    unit = "Cajas",
-                    alertThreshold = form.stockAlertThreshold.toIntOrNull() ?: 0
-                )
-            } else null,
+            inventory = inventoryObj,
             instructions = form.instructions.ifBlank { form.usageReason }
         )
 

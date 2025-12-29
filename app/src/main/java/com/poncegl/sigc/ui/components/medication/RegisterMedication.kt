@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,7 +62,6 @@ fun RegisterMedication(
     val scrollState = rememberScrollState()
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // Diálogo para selector de hora (Material 3)
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState()
 
@@ -168,8 +167,8 @@ fun RegisterMedication(
 
                     formState.frequencyTimes.forEach { time ->
                         InputChip(
-                            selected = false,
-                            onClick = { /* Nada */ },
+                            selected = true,
+                            onClick = { onEvent(RegisterPatientEvent.MedRemoveFrequencyTime(time)) },
                             label = { Text(time.format(DateTimeFormatter.ofPattern("HH:mm"))) },
                             trailingIcon = {
                                 Icon(
@@ -178,14 +177,12 @@ fun RegisterMedication(
                                     Modifier.size(16.dp)
                                 )
                             },
-                            colors = InputChipDefaults.inputChipColors(),
-//                            border = InputChipDefaults.inputChipBorder(borderColor = MaterialTheme.colorScheme.outline)
-                            // TODO: Conectar onClick del trailingIcon a MedRemoveFrequencyTime
-                            // InputChip no tiene onClick separado para el icono trailing facilmente,
-                            // Usamos el onClick principal para borrar por simplicidad o custom layout.
+                            colors = InputChipDefaults.inputChipColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(
+                                    alpha = 0.5f
+                                ) // TODO: arreglar
+                            ),
                         )
-                        // Hack rápido para evento de borrado en InputChip estándar:
-                        // onClick = { onEvent(RegisterPatientEvent.MedRemoveFrequencyTime(time)) }
                     }
                 }
             }
@@ -218,27 +215,54 @@ fun RegisterMedication(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        SigcTextField(
-                            modifier = Modifier.weight(1f),
-                            value = "10", // Hardcode placeholder visual (no está en formState aún, solo stock total)
-                            onValueChange = { /* TODO: Unidades por caja */ },
-                            label = "Unidades por caja", // TODO: evaluar si cajas es el mejor termino
-                            placeholder = "10",
-                            keyboardType = KeyboardType.Number,
-//                            enabled = false // Deshabilitado por ahora en MVP simplificado
-                        )
+                    // TEXTO DE AYUDA GENÉRICO
+                    Text(
+                        text = "Ingresa cuánto compraste para calcular el total.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                        SigcTextField(
-                            modifier = Modifier.weight(1f),
-                            value = formState.stock,
-                            onValueChange = { onEvent(RegisterPatientEvent.MedStockChanged(it)) },
-                            label = "Cajas disponibles",
-                            placeholder = "1",
-                            keyboardType = KeyboardType.Number,
+//                    Row(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+//                    ) {
+                    SigcTextField(
+//                            modifier = Modifier.weight(1f),
+                        value = formState.unitsPerPackage,
+                        onValueChange = {
+                            onEvent(
+                                RegisterPatientEvent.MedUnitsPerPackageChanged(
+                                    it
+                                )
+                            )
+                        },
+                        label = "Contenido del empaque",
+                        placeholder = "Ej: 10, 200",
+                        keyboardType = KeyboardType.Number,
+                        suffix = { Text(formState.unit) }
+                    )
+
+                    // INPUT 2: Cantidad de empaques
+                    SigcTextField(
+//                            modifier = Modifier.weight(1f),
+                        value = formState.packageCount,
+                        onValueChange = { onEvent(RegisterPatientEvent.MedPackageCountChanged(it)) },
+                        label = "Empaques disponibles",
+                        placeholder = "Ej: 2",
+                        keyboardType = KeyboardType.Number,
+                    )
+//                    }
+
+                    // FEEDBACK VISUAL (Cálculo en tiempo real opcional)
+                    val units = formState.unitsPerPackage.toDoubleOrNull() ?: 0.0
+                    val packs = formState.packageCount.toDoubleOrNull() ?: 0.0
+                    val total = units * packs
+                    if (total > 0) {
+                        Text(
+                            text = "Total calculado: ${total.toInt()} unidades en stock.",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
@@ -259,12 +283,9 @@ fun RegisterMedication(
                         }
                         Switch(
                             checked = formState.stockAlertThreshold != "0",
-                            onCheckedChange = { checked ->
-                                // Lógica simple: Si on -> threshold = 1, Si off -> 0
-                                if (checked) "1" else "0"
-                                // Aquí necesitaríamos un evento específico o reutilizar StockChanged logic
-                                // Para MVP simplificamos.
-                            }
+                            onCheckedChange = { isChecked ->
+                                onEvent(RegisterPatientEvent.MedAlertSwitchToggled(isChecked))
+                            },
                         )
                     }
                 }
@@ -285,30 +306,20 @@ fun RegisterMedication(
                 placeholder = "Ejemplo: Para el dolor",
             )
 
-            // Espacio extra al final del scroll
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                SigcButton(
+                    text = "Guardar",
+                    onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
+                    modifier = Modifier.weight(1f),
+                    startIcon = Icons.Default.Check,
+                    enabled = formState.name.isNotBlank() // TODO: validar campos
+                )
+            }
         }
 
-        // BOTÓN FLOTANTE (O FIJO AL FINAL)
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            // Botón CANCELAR (Faltaba en tu diseño original pero es vital)
-            SigcButton(
-                text = "Cancelar",
-                onClick = { onEvent(RegisterPatientEvent.CancelAddingMedication) },
-                modifier = Modifier.weight(1f),
-                // type = SigcButtonType.Outlined // Asumiendo que existe
-            )
-
-            SigcButton(
-                text = "Guardar",
-                onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
-                modifier = Modifier.weight(1f),
-                startIcon = Icons.Default.Check,
-                enabled = formState.name.isNotBlank() // Validación básica visual
-            )
-        }
     }
 }
 
@@ -317,12 +328,15 @@ fun RegisterMedication(
 private fun RegisterMedicationsLight() {
     SIGCTheme(darkTheme = false) {
         Surface {
-
-            RegisterMedication(
-                formState = MedicationFormState(),
-                onEvent = {},
-                widthSizeClass = WindowWidthSizeClass.Compact
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+            ) {
+                RegisterMedication(
+                    formState = MedicationFormState(),
+                    onEvent = {},
+                    widthSizeClass = WindowWidthSizeClass.Compact
+                )
+            }
         }
     }
 }
@@ -337,12 +351,15 @@ private fun RegisterMedicationsLight() {
 private fun RegisterMedicationsDark() {
     SIGCTheme(darkTheme = true) {
         Surface {
-
-            RegisterMedication(
-                formState = MedicationFormState(),
-                onEvent = {},
-                widthSizeClass = WindowWidthSizeClass.Compact
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+            ) {
+                RegisterMedication(
+                    formState = MedicationFormState(),
+                    onEvent = {},
+                    widthSizeClass = WindowWidthSizeClass.Compact
+                )
+            }
         }
     }
 }

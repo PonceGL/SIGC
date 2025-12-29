@@ -48,6 +48,7 @@ fun SigcTextField(
     enabled: Boolean = true,
     singleLine: Boolean = true,
     isError: Boolean = false,
+    suffix: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -71,6 +72,7 @@ fun SigcTextField(
         singleLine = singleLine,
         enabled = enabled,
         isError = isError,
+        suffix = suffix,
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType,
             imeAction = imeAction

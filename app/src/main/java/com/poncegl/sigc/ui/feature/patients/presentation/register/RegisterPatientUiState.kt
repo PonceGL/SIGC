@@ -46,7 +46,9 @@ data class MedicationFormState(
     val unit: String = "mg",
     val frequencyTimes: List<LocalTime> = emptyList(),
     val durationDays: String = "",
-    val stock: String = "",
+    val unitsPerPackage: String = "",
+    val packageCount: String = "",
+    val calculatedStock: Double = 0.0,
     val stockAlertThreshold: String = "0",
     val instructions: String = "",
     val usageReason: String = ""

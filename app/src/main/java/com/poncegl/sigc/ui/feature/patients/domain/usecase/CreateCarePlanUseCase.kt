@@ -11,7 +11,11 @@ class CreateCarePlanUseCase @Inject constructor(
         if (carePlan.patientId.isBlank()) {
             return Result.failure(IllegalArgumentException("El plan debe estar asociado a un paciente válido"))
         }
-        // TODO: Agregar lógica para validar que startDate no sea posterior a endDate si este existe
+
+        if (carePlan.endDate != null && carePlan.startDate.isAfter(carePlan.endDate)) {
+            return Result.failure(IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin"))
+        }
+
         return repository.createCarePlan(carePlan)
     }
 }

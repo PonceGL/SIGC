@@ -1,7 +1,6 @@
 package com.poncegl.sigc.ui.components.registerPatient
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -25,10 +24,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -39,34 +34,26 @@ import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcCallout
 import com.poncegl.sigc.ui.components.shared.SigcDatePicker
 import com.poncegl.sigc.ui.components.shared.SigcTextField
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
+import java.time.Instant
+import java.time.ZoneId
 import java.util.Calendar
 
 @Composable
-fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Unit) {
+fun PatientData(
+    state: RegisterPatientUiState,
+    onEvent: (RegisterPatientEvent) -> Unit,
+    widthSizeClass: WindowWidthSizeClass
+) {
     val scrollState = rememberScrollState()
-    var patientName by remember { mutableStateOf("") }
-    var birthDate by remember { mutableStateOf<Long?>(null) }
-    var age by remember { mutableStateOf("") }
-    var diagnosis by remember { mutableStateOf("") }
-    var isAgeUnknown by remember { mutableStateOf(false) }
 
-    // Fechas límite: Hoy y hace 120 años
+    // Fechas límite visuales | Hoy y hace 120 años
     val today = Calendar.getInstance().timeInMillis
     val minDate = Calendar.getInstance().apply {
         add(Calendar.YEAR, -120)
     }.timeInMillis
-
-    // Función auxiliar para calcular edad
-    fun calculateAge(birthDateMillis: Long): String {
-        val dob = Calendar.getInstance().apply { timeInMillis = birthDateMillis }
-        val todayCal = Calendar.getInstance()
-        var ageInt = todayCal.get(Calendar.YEAR) - dob.get(Calendar.YEAR)
-        if (todayCal.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)) {
-            ageInt--
-        }
-        return ageInt.toString()
-    }
 
     Column(
         modifier = Modifier
@@ -83,22 +70,23 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
+            // 1. NOMBRE
             SigcTextField(
-                value = patientName,
-                onValueChange = { patientName = it },
+                value = state.patientName,
+                onValueChange = { onEvent(RegisterPatientEvent.NameChanged(it)) },
                 label = "¿Cómo se llama el paciente?",
                 keyboardType = KeyboardType.Text,
+                isError = state.error != null && state.patientName.isBlank()
             )
 
             AnimatedContent(
-                targetState = isAgeUnknown,
+                targetState = state.isDobUnknown,
                 transitionSpec = {
                     fadeIn(animationSpec = tween(300)) togetherWith fadeOut(
                         animationSpec = tween(
@@ -110,13 +98,20 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
             ) { unknown ->
 
                 if (!unknown) {
+                    // CONVERSIÓN: LocalDate (Domain) -> Long (UI Millis)
+                    val dateMillis = state.patientDob?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()
+                        ?.toEpochMilli()
+
                     SigcDatePicker(
                         label = "Fecha de nacimiento",
-                        selectedDate = birthDate,
-                        onDateSelected = { date ->
-                            birthDate = date
-                            if (date != null) {
-                                age = calculateAge(date)
+                        selectedDate = dateMillis,
+                        onDateSelected = { millis ->
+                            if (millis != null) {
+                                // CONVERSIÓN: Long (UI Millis) -> LocalDate (Domain)
+                                val localDate = Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneId.of("UTC"))
+                                    .toLocalDate()
+                                onEvent(RegisterPatientEvent.DobChanged(localDate))
                             }
                         },
                         minDateMillis = minDate,
@@ -128,23 +123,19 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
                             todayContentColor = MaterialTheme.colorScheme.primary
                         )
                     )
-
                 }
             }
 
+            // 3. CHECKBOX "NO CONOZCO FECHA"
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
                 Checkbox(
-                    checked = isAgeUnknown,
+                    checked = state.isDobUnknown,
                     onCheckedChange = { checked ->
-                        isAgeUnknown = checked
-                        if (checked) {
-                            birthDate = null
-                            age = ""
-                        }
+                        onEvent(RegisterPatientEvent.DobUnknownChanged(checked))
                     }
                 )
                 Text(
@@ -154,23 +145,23 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
                 )
             }
 
+            // 4. EDAD MANUAL
             SigcTextField(
-                value = age,
-                onValueChange = {
-                    if (isAgeUnknown) {
-                        if (it.all { char -> char.isDigit() }) {
-                            age = it
-                        }
+                value = state.patientAgeInput,
+                onValueChange = { input ->
+                    if (input.all { char -> char.isDigit() }) {
+                        onEvent(RegisterPatientEvent.AgeChanged(input))
                     }
                 },
                 label = "¿Cuántos años tiene?",
                 keyboardType = KeyboardType.Number,
-                enabled = isAgeUnknown
+                enabled = state.isDobUnknown
             )
 
+            // 5. DIAGNÓSTICO
             SigcTextField(
-                value = diagnosis,
-                onValueChange = { diagnosis = it },
+                value = state.diagnosisName,
+                onValueChange = { onEvent(RegisterPatientEvent.DiagnosisChanged(it)) },
                 label = "¿Cuál es su diagnóstico o estado actual?",
                 keyboardType = KeyboardType.Text,
                 modifier = Modifier.heightIn(130.dp),
@@ -179,14 +170,17 @@ fun PatientData(widthSizeClass: WindowWidthSizeClass, onContinueAction: () -> Un
 
             Spacer(modifier = Modifier.weight(1f))
 
+            val isFormValid = state.patientName.isNotBlank() &&
+                    (state.patientDob != null) &&
+                    state.diagnosisName.isNotBlank()
+
             SigcButton(
                 text = "Continuar",
                 onClick = {
-                    Log.i("PatientData", "PatientData: Continuar")
-                    onContinueAction()
+                    onEvent(RegisterPatientEvent.NextStep)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = patientName.isNotBlank() && age.isNotBlank() && diagnosis.isNotBlank()
+                enabled = isFormValid
             )
         }
     }
@@ -198,8 +192,14 @@ private fun PatientDataLight() {
     SIGCTheme(darkTheme = false) {
         Surface {
             PatientData(
+                state = RegisterPatientUiState(
+                    currentStep = 1,
+                    patientName = "Juan Perez",
+                    isDobUnknown = true,
+                    patientAgeInput = "35"
+                ),
+                onEvent = {},
                 widthSizeClass = WindowWidthSizeClass.Compact,
-                onContinueAction = {}
             )
         }
     }
@@ -216,8 +216,14 @@ private fun PatientDataDark() {
     SIGCTheme(darkTheme = true) {
         Surface {
             PatientData(
+                state = RegisterPatientUiState(
+                    currentStep = 1,
+                    patientName = "Juan Perez",
+                    isDobUnknown = true,
+                    patientAgeInput = "35"
+                ),
+                onEvent = {},
                 widthSizeClass = WindowWidthSizeClass.Compact,
-                onContinueAction = {}
             )
         }
     }
@@ -234,8 +240,14 @@ private fun PatientDataFoldDark() {
     SIGCTheme(darkTheme = true) {
         Surface {
             PatientData(
+                state = RegisterPatientUiState(
+                    currentStep = 1,
+                    patientName = "Juan Perez",
+                    isDobUnknown = true,
+                    patientAgeInput = "35"
+                ),
+                onEvent = {},
                 widthSizeClass = WindowWidthSizeClass.Expanded,
-                onContinueAction = {}
             )
         }
     }
@@ -252,8 +264,14 @@ private fun PatientDataTabletDark() {
     SIGCTheme(darkTheme = true) {
         Surface {
             PatientData(
+                state = RegisterPatientUiState(
+                    currentStep = 1,
+                    patientName = "Juan Perez",
+                    isDobUnknown = true,
+                    patientAgeInput = "35"
+                ),
+                onEvent = {},
                 widthSizeClass = WindowWidthSizeClass.Expanded,
-                onContinueAction = {}
             )
         }
     }

@@ -21,10 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -94,15 +90,11 @@ fun RegisterPatientContent(
         HeaderInformation.Four
     )
 
-    var currentStepIndex by remember { mutableIntStateOf(state.currentStep) }
-
-    val onNextAction = {
-        currentStepIndex++
-    }
+    val currentStepIndex = state.currentStep
 
     val onBackAction = {
-        if (currentStepIndex > 0) {
-            currentStepIndex--
+        if (state.currentStep > 1) {
+            onEvent(RegisterPatientEvent.PreviousStep)
         } else {
             onNavigateToHome()
         }
@@ -131,7 +123,8 @@ fun RegisterPatientContent(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                val currentHeaderInfo = headerInfo[currentStepIndex]
+                val safeHeaderIndex = currentStepIndex.coerceIn(0, headerInfo.lastIndex)
+                val currentHeaderInfo = headerInfo[safeHeaderIndex]
 
                 HeaderAction(
                     title = currentHeaderInfo.title,
@@ -144,8 +137,8 @@ fun RegisterPatientContent(
 
                 SigcStepper(
                     steps = steps,
-                    currentStepIndex = currentStepIndex,
-                    onStepClick = { index -> currentStepIndex = index },
+                    currentStepIndex = safeHeaderIndex,
+                    onStepClick = { },
                     isNavigationEnabled = false,
                     stepIndicator = { step, _, status ->
                         SigcStepCircle(text = step.title, status = status)
@@ -155,7 +148,7 @@ fun RegisterPatientContent(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 AnimatedContent(
-                    targetState = currentStepIndex,
+                    targetState = safeHeaderIndex,
                     transitionSpec = {
                         fadeIn(animationSpec = tween(300)) togetherWith fadeOut(
                             animationSpec = tween(300)
@@ -166,23 +159,22 @@ fun RegisterPatientContent(
                     when (steps[targetIndex]) {
 
                         RegisterPatientStep.One -> PatientData(
-                            widthSizeClass = WindowWidthSizeClass.Compact,
-                            onContinueAction = {
-                                onNextAction()
-                            }
+                            state = state,
+                            onEvent = onEvent,
+                            widthSizeClass = widthSizeClass
                         )
 
                         RegisterPatientStep.Two -> MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
                             isShowingMedicationForm = state.isAddingMedication,
-                            onAddMedicationAction = { 
+                            onAddMedicationAction = {
                                 onEvent(RegisterPatientEvent.StartAddingMedication)
                             },
                             onBackAction = {
                                 onBackAction()
                             },
                             onContinueAction = {
-                                onNextAction()
+                                onEvent(RegisterPatientEvent.NextStep)
                             }
                         )
 

@@ -1,5 +1,6 @@
 package com.poncegl.sigc.ui.feature.patients.presentation.register
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poncegl.sigc.core.util.NetworkMonitor
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
+import java.time.Period
 import java.util.UUID
 import javax.inject.Inject
 
@@ -43,6 +45,16 @@ class RegisterPatientViewModel @Inject constructor(
         when (event) {
             is RegisterPatientEvent.NextStep -> {
                 if (validateCurrentStep()) {
+                    Log.i("RegisterPatientViewModel", "======================================")
+                    Log.i("RegisterPatientViewModel", "NextStep")
+                    Log.i("RegisterPatientViewModel", "patientName: ${_uiState.value.patientName}")
+                    Log.i("RegisterPatientViewModel", "patientDob: ${_uiState.value.patientDob}")
+                    Log.i(
+                        "RegisterPatientViewModel",
+                        "diagnosisName: ${_uiState.value.diagnosisName}"
+                    )
+                    Log.i("RegisterPatientViewModel", "State.value: ${_uiState.value}")
+                    Log.i("RegisterPatientViewModel", "======================================")
                     _uiState.update { it.copy(currentStep = it.currentStep + 1) }
                 }
             }
@@ -62,7 +74,17 @@ class RegisterPatientViewModel @Inject constructor(
             is RegisterPatientEvent.DobUnknownChanged -> _uiState.update { it.copy(isDobUnknown = event.isUnknown) }
 
             is RegisterPatientEvent.DobChanged -> _uiState.update {
-                it.copy(patientDob = event.date, isDobUnknown = false, patientAgeInput = "")
+                val calculatedAge = try {
+                    Period.between(event.date, LocalDate.now()).years.toString()
+                } catch (e: Exception) {
+                    ""
+                }
+
+                it.copy(
+                    patientDob = event.date,
+                    isDobUnknown = false,
+                    patientAgeInput = calculatedAge
+                )
             }
 
             is RegisterPatientEvent.AgeChanged -> _uiState.update {

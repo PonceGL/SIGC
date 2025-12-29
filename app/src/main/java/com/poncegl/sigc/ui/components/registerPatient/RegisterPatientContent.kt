@@ -35,6 +35,7 @@ import com.poncegl.sigc.ui.components.shared.HeaderAction
 import com.poncegl.sigc.ui.components.shared.HeaderIcon
 import com.poncegl.sigc.ui.components.shared.SigcStepCircle
 import com.poncegl.sigc.ui.components.shared.SigcStepper
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
@@ -74,8 +75,7 @@ sealed class HeaderInformation(val title: String, val description: String, val i
 @Composable
 fun RegisterPatientContent(
     state: RegisterPatientUiState,
-    isShowingMedicationForm: Boolean = false,
-    onAddMedicationAction: () -> Unit,
+    onEvent: (RegisterPatientEvent) -> Unit,
     onNavigateToHome: () -> Unit,
     widthSizeClass: WindowWidthSizeClass,
 ) {
@@ -174,8 +174,10 @@ fun RegisterPatientContent(
 
                         RegisterPatientStep.Two -> MedicationsData(
                             widthSizeClass = WindowWidthSizeClass.Compact,
-                            isShowingMedicationForm = isShowingMedicationForm,
-                            onAddMedicationAction = onAddMedicationAction,
+                            isShowingMedicationForm = state.isAddingMedication,
+                            onAddMedicationAction = { 
+                                onEvent(RegisterPatientEvent.StartAddingMedication)
+                            },
                             onBackAction = {
                                 onBackAction()
                             },
@@ -220,7 +222,7 @@ private fun PatientDataLight() {
             state = RegisterPatientUiState(
                 currentStep = 0
             ),
-            onAddMedicationAction = {},
+            onEvent = {},
             onNavigateToHome = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
         )
@@ -240,7 +242,7 @@ private fun PatientDataDark() {
             state = RegisterPatientUiState(
                 currentStep = 0
             ),
-            onAddMedicationAction = {},
+            onEvent = {},
             onNavigateToHome = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
         )
@@ -260,7 +262,7 @@ private fun PatientDataFoldDark() {
             state = RegisterPatientUiState(
                 currentStep = 0
             ),
-            onAddMedicationAction = {},
+            onEvent = {},
             onNavigateToHome = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
         )
@@ -280,10 +282,9 @@ private fun PatientDataTabletDark() {
             state = RegisterPatientUiState(
                 currentStep = 0
             ),
-            onAddMedicationAction = {},
+            onEvent = {},
             onNavigateToHome = {},
             widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
-

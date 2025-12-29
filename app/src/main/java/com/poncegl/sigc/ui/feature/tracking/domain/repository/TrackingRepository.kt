@@ -26,6 +26,8 @@ interface TrackingRepository {
 
     /**
      * Elimina un registro (si el usuario tiene permisos).
+     * @param patientId Necesario para localizar la sub-colección.
+     * @param logId ID del documento a eliminar.
      */
-    suspend fun deleteLog(logId: String): Result<Unit>
+    suspend fun deleteLog(patientId: String, logId: String): Result<Unit>
 }

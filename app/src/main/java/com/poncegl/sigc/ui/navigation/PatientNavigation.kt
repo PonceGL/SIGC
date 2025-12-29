@@ -4,7 +4,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.poncegl.sigc.ui.feature.registerPatient.RegisterPatientScreen
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientScreen
 
 fun NavGraphBuilder.patientGraph(
     navController: NavController,

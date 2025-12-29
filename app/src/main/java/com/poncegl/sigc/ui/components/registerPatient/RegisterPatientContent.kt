@@ -35,6 +35,7 @@ import com.poncegl.sigc.ui.components.shared.HeaderAction
 import com.poncegl.sigc.ui.components.shared.HeaderIcon
 import com.poncegl.sigc.ui.components.shared.SigcStepCircle
 import com.poncegl.sigc.ui.components.shared.SigcStepper
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
 sealed class RegisterPatientStep(val title: String) {
@@ -72,10 +73,11 @@ sealed class HeaderInformation(val title: String, val description: String, val i
 
 @Composable
 fun RegisterPatientContent(
-    widthSizeClass: WindowWidthSizeClass,
+    state: RegisterPatientUiState,
     isShowingMedicationForm: Boolean = false,
     onAddMedicationAction: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
+    widthSizeClass: WindowWidthSizeClass,
 ) {
 
     val steps = listOf(
@@ -92,7 +94,7 @@ fun RegisterPatientContent(
         HeaderInformation.Four
     )
 
-    var currentStepIndex by remember { mutableIntStateOf(0) }
+    var currentStepIndex by remember { mutableIntStateOf(state.currentStep) }
 
     val onNextAction = {
         currentStepIndex++
@@ -215,9 +217,12 @@ fun StepFour() {
 private fun PatientDataLight() {
     SIGCTheme(darkTheme = false) {
         RegisterPatientContent(
-            widthSizeClass = WindowWidthSizeClass.Compact,
+            state = RegisterPatientUiState(
+                currentStep = 0
+            ),
             onAddMedicationAction = {},
-            onNavigateToHome = {}
+            onNavigateToHome = {},
+            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
@@ -232,9 +237,12 @@ private fun PatientDataLight() {
 private fun PatientDataDark() {
     SIGCTheme(darkTheme = true) {
         RegisterPatientContent(
-            widthSizeClass = WindowWidthSizeClass.Compact,
+            state = RegisterPatientUiState(
+                currentStep = 0
+            ),
             onAddMedicationAction = {},
-            onNavigateToHome = {}
+            onNavigateToHome = {},
+            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
@@ -249,9 +257,12 @@ private fun PatientDataDark() {
 private fun PatientDataFoldDark() {
     SIGCTheme(darkTheme = true) {
         RegisterPatientContent(
-            widthSizeClass = WindowWidthSizeClass.Compact,
+            state = RegisterPatientUiState(
+                currentStep = 0
+            ),
             onAddMedicationAction = {},
-            onNavigateToHome = {}
+            onNavigateToHome = {},
+            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
@@ -266,9 +277,12 @@ private fun PatientDataFoldDark() {
 private fun PatientDataTabletDark() {
     SIGCTheme(darkTheme = true) {
         RegisterPatientContent(
-            widthSizeClass = WindowWidthSizeClass.Compact,
+            state = RegisterPatientUiState(
+                currentStep = 0
+            ),
             onAddMedicationAction = {},
-            onNavigateToHome = {}
+            onNavigateToHome = {},
+            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }

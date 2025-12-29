@@ -165,17 +165,15 @@ fun RegisterPatientContent(
                         )
 
                         RegisterPatientStep.Two -> MedicationsData(
-                            widthSizeClass = WindowWidthSizeClass.Compact,
-                            isShowingMedicationForm = state.isAddingMedication,
-                            onAddMedicationAction = {
-                                onEvent(RegisterPatientEvent.StartAddingMedication)
-                            },
+                            state = state,
+                            onEvent = onEvent,
                             onBackAction = {
                                 onBackAction()
                             },
                             onContinueAction = {
                                 onEvent(RegisterPatientEvent.NextStep)
-                            }
+                            },
+                            widthSizeClass = WindowWidthSizeClass.Compact,
                         )
 
                         RegisterPatientStep.Three -> StepThree()

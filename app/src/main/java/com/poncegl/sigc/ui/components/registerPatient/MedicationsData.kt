@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -29,21 +30,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.core.constants.UI
-import com.poncegl.sigc.ui.components.medications.RegisterMedication
+import com.poncegl.sigc.ui.components.medication.RegisterMedication
 import com.poncegl.sigc.ui.components.shared.AddMedicationCard
 import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcButtonType
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
+import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
 @Composable
 fun MedicationsData(
-    widthSizeClass: WindowWidthSizeClass,
-    isShowingMedicationForm: Boolean,
-    onAddMedicationAction: () -> Unit,
+    state: RegisterPatientUiState,
+    onEvent: (RegisterPatientEvent) -> Unit,
     onBackAction: () -> Unit,
-    onContinueAction: () -> Unit
+    onContinueAction: () -> Unit,
+    widthSizeClass: WindowWidthSizeClass,
 ) {
     val scrollState = rememberScrollState()
+
+    val addedMedications = state.addedMedications
+    val isShowingMedicationForm = state.isAddingMedication
 
     Column(
         modifier = Modifier
@@ -52,26 +58,42 @@ fun MedicationsData(
     ) {
         if (isShowingMedicationForm) {
             RegisterMedication(
-                widthSizeClass = widthSizeClass,
-                onRegisterMedication = {}
+                formState = state.medicationForm,
+                onEvent = onEvent,
+                widthSizeClass = widthSizeClass
             )
         } else {
+            if (addedMedications.isEmpty()) { // TODO: Reemplazar por data de ViewModel
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(scrollState),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    Text(
+                        text = "Agrega los medicamentos que toma el paciente. Puedes agregar más después.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Left,
+                    )
 
-            Column(
-                modifier = Modifier
-                    .verticalScroll(scrollState),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                Text(
-                    text = "Agrega los medicamentos que toma el paciente. Puedes agregar más después.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Left,
+                    AddMedicationCard(onAction = {
+                        onEvent(RegisterPatientEvent.StartAddingMedication)
+                    })
+                }
+            } else {
+                // Todo: Lista de medicamentos registrados (tal vez SwipeToDismissBox) aún no existe
+
+                SigcButton(
+                    text = "Agregar otro medicamento",
+                    onClick = {
+                        onEvent(RegisterPatientEvent.StartAddingMedication)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    type = SigcButtonType.Outlined,
+                    startIcon = Icons.Default.Add,
                 )
-
-                AddMedicationCard(onAction = onAddMedicationAction)
             }
 
             Spacer(modifier = Modifier.weight(weight = 1f))
@@ -127,11 +149,16 @@ private fun MedicationsDataLight() {
                     ) {
 
                         MedicationsData(
-                            widthSizeClass = WindowWidthSizeClass.Compact,
-                            isShowingMedicationForm = false,
-                            onAddMedicationAction = {},
+                            state = RegisterPatientUiState(
+                                currentStep = 1,
+                                patientName = "Juan Perez",
+                                isDobUnknown = true,
+                                patientAgeInput = "35"
+                            ),
+                            onEvent = {},
                             onBackAction = {},
-                            onContinueAction = {}
+                            onContinueAction = {},
+                            widthSizeClass = WindowWidthSizeClass.Compact
                         )
                     }
                 }
@@ -170,11 +197,16 @@ private fun MedicationsDataDark() {
                     ) {
 
                         MedicationsData(
-                            widthSizeClass = WindowWidthSizeClass.Compact,
-                            isShowingMedicationForm = false,
-                            onAddMedicationAction = {},
+                            state = RegisterPatientUiState(
+                                currentStep = 1,
+                                patientName = "Juan Perez",
+                                isDobUnknown = true,
+                                patientAgeInput = "35"
+                            ),
+                            onEvent = {},
                             onBackAction = {},
-                            onContinueAction = {}
+                            onContinueAction = {},
+                            widthSizeClass = WindowWidthSizeClass.Compact,
                         )
                     }
                 }
@@ -213,11 +245,16 @@ private fun MedicationsDataFoldDark() {
                     ) {
 
                         MedicationsData(
-                            widthSizeClass = WindowWidthSizeClass.Expanded,
-                            isShowingMedicationForm = true,
-                            onAddMedicationAction = {},
+                            state = RegisterPatientUiState(
+                                currentStep = 1,
+                                patientName = "Juan Perez",
+                                isDobUnknown = true,
+                                patientAgeInput = "35"
+                            ),
+                            onEvent = {},
                             onBackAction = {},
-                            onContinueAction = {}
+                            onContinueAction = {},
+                            widthSizeClass = WindowWidthSizeClass.Expanded,
                         )
                     }
                 }
@@ -256,11 +293,16 @@ private fun MedicationsDataTabletDark() {
                     ) {
 
                         MedicationsData(
-                            widthSizeClass = WindowWidthSizeClass.Expanded,
-                            isShowingMedicationForm = false,
-                            onAddMedicationAction = {},
+                            state = RegisterPatientUiState(
+                                currentStep = 1,
+                                patientName = "Juan Perez",
+                                isDobUnknown = true,
+                                patientAgeInput = "35"
+                            ),
+                            onEvent = {},
                             onBackAction = {},
-                            onContinueAction = {}
+                            onContinueAction = {},
+                            widthSizeClass = WindowWidthSizeClass.Expanded,
                         )
                     }
                 }

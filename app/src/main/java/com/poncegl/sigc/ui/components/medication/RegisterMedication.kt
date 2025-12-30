@@ -1,8 +1,6 @@
 package com.poncegl.sigc.ui.components.medication
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -47,7 +43,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.shared.SigcButton
-import com.poncegl.sigc.ui.components.shared.SigcButtonType
+import com.poncegl.sigc.ui.components.shared.SigcSelector
 import com.poncegl.sigc.ui.components.shared.SigcTextField
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationUnit
@@ -140,38 +135,12 @@ fun RegisterMedication(
             )
 
             // 1. SELECTOR DE TIPO (HEADER CONTEXTUAL)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .clickable { showTypeSheet = true }
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = "Tipo de medicamento",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = formState.presentation.label,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Cambiar tipo",
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
+            SigcSelector(
+                value = formState.presentation.label,
+                label = "Tipo de medicamento",
+                onClick = { showTypeSheet = true },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             // 2. DOSIS Y UNIDAD
             Row(
@@ -198,14 +167,14 @@ fun RegisterMedication(
 
                     val medicationUnitArray: Array<MedicationUnit> = MedicationUnit.values()
                     val medicationUnitList: List<MedicationUnit> = medicationUnitArray.toList()
-                    SigcButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = formState.unit,
-                        onClick = {
-                            expanded = !expanded
-                        },
-                        type = SigcButtonType.Outlined,
+                    SigcTextField(
+                        value = "",
+                        onValueChange = {},
+                        label = formState.unit,
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
+
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
@@ -323,7 +292,6 @@ fun RegisterMedication(
                         placeholder = "0",
                         keyboardType = KeyboardType.Number,
                     )
-
                     val units = formState.unitsPerPackage.toDoubleOrNull() ?: 0.0
                     val packs = formState.packageCount.toDoubleOrNull() ?: 0.0
                     val total = units * packs

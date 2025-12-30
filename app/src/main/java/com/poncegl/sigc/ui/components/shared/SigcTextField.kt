@@ -39,12 +39,14 @@ fun SigcTextField(
     label: String,
     placeholder: String? = null,
     icon: ImageVector? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
     onTogglePassword: (() -> Unit)? = null,
+    readOnly: Boolean = false,
     enabled: Boolean = true,
     singleLine: Boolean = true,
     isError: Boolean = false,
@@ -58,7 +60,7 @@ fun SigcTextField(
         leadingIcon = if (icon != null) {
             { Icon(imageVector = icon, contentDescription = null) }
         } else null,
-        trailingIcon = if (isPassword && onTogglePassword != null) {
+        trailingIcon = trailingIcon ?: if (isPassword && onTogglePassword != null) {
             {
                 IconButton(onClick = onTogglePassword) {
                     Icon(
@@ -71,6 +73,7 @@ fun SigcTextField(
         modifier = modifier.fillMaxWidth(),
         singleLine = singleLine,
         enabled = enabled,
+        readOnly = readOnly,
         isError = isError,
         suffix = suffix,
         keyboardOptions = KeyboardOptions(

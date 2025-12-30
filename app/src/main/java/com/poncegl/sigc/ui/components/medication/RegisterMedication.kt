@@ -1,6 +1,7 @@
 package com.poncegl.sigc.ui.components.medication
 
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,8 +44,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -162,18 +165,31 @@ fun RegisterMedication(
 
                 Box(
                     modifier = Modifier
-                        .weight(1.2f),
+                        .weight(0.85f),
+                    contentAlignment = Alignment.TopEnd,
                 ) {
 
                     val medicationUnitArray: Array<MedicationUnit> = MedicationUnit.values()
                     val medicationUnitList: List<MedicationUnit> = medicationUnitArray.toList()
-                    SigcTextField(
-                        value = "",
-                        onValueChange = {},
-                        label = formState.unit,
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+
+                    Box {
+
+                        SigcTextField(
+                            value = formState.unit,
+                            onValueChange = {},
+                            label = "",
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = TextStyle(textAlign = TextAlign.Center),
+                            singleLine = true,
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { expanded = true }
+                        )
+                    }
 
                     DropdownMenu(
                         expanded = expanded,
@@ -182,7 +198,13 @@ fun RegisterMedication(
 
                         medicationUnitList.forEach { option ->
                             DropdownMenuItem(
-                                text = { Text(text = option.label) },
+                                text = {
+                                    Text(
+                                        text = option.label,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Right
+                                    )
+                                },
                                 onClick = {
                                     onEvent(RegisterPatientEvent.MedUnitChanged(option.label))
                                     expanded = false

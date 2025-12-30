@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -23,10 +24,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -51,6 +54,7 @@ fun SigcTextField(
     singleLine: Boolean = true,
     isError: Boolean = false,
     suffix: @Composable (() -> Unit)? = null,
+    textStyle: TextStyle = LocalTextStyle.current,
 ) {
     OutlinedTextField(
         value = value,
@@ -76,6 +80,7 @@ fun SigcTextField(
         readOnly = readOnly,
         isError = isError,
         suffix = suffix,
+        textStyle = textStyle,
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType,
             imeAction = imeAction
@@ -218,6 +223,31 @@ private fun PreviewSigcTextFieldWithPlaceholder() {
                     label = "Correo electrónico",
                     placeholder = "ej: usuario@dominio.com",
                     icon = Icons.Default.Email
+                )
+            }
+        }
+    }
+}
+
+
+@Preview(
+    name = "5. Con Placeholder",
+    device = "id:pixel_5",
+    apiLevel = 31,
+    showBackground = true
+)
+@Composable
+private fun PreviewSigcTextFieldWithTextCenter() {
+    SIGCTheme(darkTheme = false) {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SigcTextField(
+                    value = "value",
+                    onValueChange = {},
+                    label = "Correo electrónico",
+//                    placeholder = "ej: usuario@dominio.com",
+//                    icon = Icons.Default.Email,
+                    textStyle = TextStyle(textAlign = TextAlign.Center),
                 )
             }
         }

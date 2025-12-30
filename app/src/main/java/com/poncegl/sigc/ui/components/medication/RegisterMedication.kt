@@ -1,25 +1,34 @@
 package com.poncegl.sigc.ui.components.medication
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
@@ -38,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +55,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.shared.SigcButton
+import com.poncegl.sigc.ui.components.shared.SigcButtonType
 import com.poncegl.sigc.ui.components.shared.SigcTextField
+import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
+import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationUnit
 import com.poncegl.sigc.ui.feature.patients.presentation.register.MedicationFormState
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -61,10 +74,25 @@ fun RegisterMedication(
 ) {
     val scrollState = rememberScrollState()
     var showTimePicker by remember { mutableStateOf(false) }
+    var showTypeSheet by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
+    val inventoryConfig = formState.presentation.getInventoryConfig()
+
+    // --- SHEET DE SELECCIÓN DE TIPO ---
+    if (showTypeSheet) {
+        MedicationPresentationSheet(
+            selectedPresentation = formState.presentation,
+            onPresentationSelected = { type ->
+                onEvent(RegisterPatientEvent.MedPresentationChanged(type))
+            },
+            onDismiss = { showTypeSheet = false }
+        )
+    }
+
+    // --- DIÁLOGO DE HORA ---
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState()
-
         Dialog(onDismissRequest = { showTimePicker = false }) {
             Card {
                 Column(
@@ -96,13 +124,13 @@ fun RegisterMedication(
     ) {
         Column(
             modifier = Modifier
-                .weight(1f) // Ocupa el espacio disponible para scroll
+                .weight(1f)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // 1. NOMBRE
+            // 0. NOMBRE
             SigcTextField(
                 value = formState.name,
                 onValueChange = { onEvent(RegisterPatientEvent.MedNameChanged(it)) },
@@ -111,31 +139,92 @@ fun RegisterMedication(
                 keyboardType = KeyboardType.Text,
             )
 
+            // 1. SELECTOR DE TIPO (HEADER CONTEXTUAL)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .clickable { showTypeSheet = true }
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Tipo de medicamento",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = formState.presentation.label,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Cambiar tipo",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+
             // 2. DOSIS Y UNIDAD
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 SigcTextField(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(2f),
                     value = formState.dose,
                     onValueChange = { onEvent(RegisterPatientEvent.MedDoseChanged(it)) },
-                    label = "Dosis",
-                    placeholder = "500",
+                    label = "Dosis / Concentración",
+                    placeholder = "Ej: 500",
                     keyboardType = KeyboardType.Number,
                 )
 
-                SigcTextField(
-                    modifier = Modifier.weight(1f),
-                    value = formState.unit,
-                    onValueChange = { onEvent(RegisterPatientEvent.MedUnitChanged(it)) },
-                    label = "Unidad",
-                    placeholder = "mg",
-                    keyboardType = KeyboardType.Text,
-                )
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .weight(1.2f),
+                ) {
+
+                    val medicationUnitArray: Array<MedicationUnit> = MedicationUnit.values()
+                    val medicationUnitList: List<MedicationUnit> = medicationUnitArray.toList()
+                    SigcButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = formState.unit,
+                        onClick = {
+                            expanded = !expanded
+                        },
+                        type = SigcButtonType.Outlined,
+                    )
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+
+                        medicationUnitList.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(text = option.label) },
+                                onClick = {
+                                    onEvent(RegisterPatientEvent.MedUnitChanged(option.label))
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
-            // 3. FRECUENCIA (HORAS)
+            // 3. FRECUENCIA
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -144,8 +233,8 @@ fun RegisterMedication(
                 ) {
                     Text(
                         text = "¿A qué horas se toma?",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     TextButton(onClick = { showTimePicker = true }) {
@@ -155,16 +244,10 @@ fun RegisterMedication(
                     }
                 }
 
-                // Lista de Chips para las horas agregadas
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Wrap en FlowRow idealmente
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Nota: Si son muchas, necesitarías FlowRow. Por brevedad uso Row con horizontalScroll o simple.
-                    // Para MVP, mostraremos las primeras o usaremos un layout custom si son muchas.
-                    // Como el video muestra una lista vertical de horas, si no tienes FlowRow, usa Column.
-                    // Pero InputChip es bueno para esto.
-
                     formState.frequencyTimes.forEach { time ->
                         InputChip(
                             selected = true,
@@ -178,9 +261,10 @@ fun RegisterMedication(
                                 )
                             },
                             colors = InputChipDefaults.inputChipColors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(
-                                    alpha = 0.5f
-                                ) // TODO: arreglar
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                         )
                     }
@@ -196,10 +280,10 @@ fun RegisterMedication(
                 keyboardType = KeyboardType.Number,
             )
 
-            // 5. INVENTARIO (CARD)
+            // 5. INVENTARIO CONTEXTUAL (La magia ocurre aquí)
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), // Más sutil
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -210,61 +294,59 @@ fun RegisterMedication(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "Inventario disponible",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Inventario inicial",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
-                    // TEXTO DE AYUDA GENÉRICO
                     Text(
-                        text = "Ingresa cuánto compraste para calcular el total.",
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "Ayuda a calcular cuándo se terminará el medicamento.",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-//                    Row(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-//                    ) {
+                    Spacer(modifier = Modifier.height(5.dp))
+
                     SigcTextField(
-//                            modifier = Modifier.weight(1f),
                         value = formState.unitsPerPackage,
-                        onValueChange = {
-                            onEvent(
-                                RegisterPatientEvent.MedUnitsPerPackageChanged(
-                                    it
-                                )
-                            )
-                        },
-                        label = "Contenido del empaque",
-                        placeholder = "Ej: 10, 200",
+                        onValueChange = { onEvent(RegisterPatientEvent.MedUnitsPerPackageChanged(it)) },
+                        label = inventoryConfig.contentLabel,
+                        placeholder = "0",
                         keyboardType = KeyboardType.Number,
-                        suffix = { Text(formState.unit) }
+                        suffix = { Text(inventoryConfig.defaultUnit) }
                     )
 
-                    // INPUT 2: Cantidad de empaques
                     SigcTextField(
-//                            modifier = Modifier.weight(1f),
                         value = formState.packageCount,
                         onValueChange = { onEvent(RegisterPatientEvent.MedPackageCountChanged(it)) },
-                        label = "Empaques disponibles",
-                        placeholder = "Ej: 2",
+                        label = inventoryConfig.containerLabel,
+                        placeholder = "0",
                         keyboardType = KeyboardType.Number,
                     )
-//                    }
 
-                    // FEEDBACK VISUAL (Cálculo en tiempo real opcional)
                     val units = formState.unitsPerPackage.toDoubleOrNull() ?: 0.0
                     val packs = formState.packageCount.toDoubleOrNull() ?: 0.0
                     val total = units * packs
+
                     if (total > 0) {
-                        Text(
-                            text = "Total calculado: ${total.toInt()} unidades en stock.",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "Total en stock: ${total.toInt()} ${inventoryConfig.defaultUnit}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -273,12 +355,14 @@ fun RegisterMedication(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Avisar cuando se termine",
-                                style = MaterialTheme.typography.bodySmall
+                                "Alerta de stock bajo",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
                             )
                             Text(
-                                "Recibe una alerta...",
-                                style = MaterialTheme.typography.labelSmall
+                                "Avisar cuando queden pocas unidades",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Switch(
@@ -296,30 +380,26 @@ fun RegisterMedication(
                 value = formState.instructions,
                 onValueChange = { onEvent(RegisterPatientEvent.MedInstructionsChanged(it)) },
                 label = "Indicación especial (opcional)",
-                placeholder = "Ejemplo: Tomar en ayunas",
+                placeholder = "Ej: Triturar pastilla",
             )
 
             SigcTextField(
                 value = formState.usageReason,
                 onValueChange = { onEvent(RegisterPatientEvent.MedReasonChanged(it)) },
                 label = "¿Para qué es? (opcional)",
-                placeholder = "Ejemplo: Para el dolor",
+                placeholder = "Ej: Para el dolor",
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-
-                SigcButton(
-                    text = "Guardar",
-                    onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
-                    modifier = Modifier.weight(1f),
-                    startIcon = Icons.Default.Check,
-                    enabled = formState.name.isNotBlank() // TODO: validar campos
-                )
-            }
+            SigcButton(
+                text = "Guardar",
+                onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
+                modifier = Modifier.fillMaxWidth(),
+                startIcon = Icons.Default.Check,
+                enabled = formState.name.isNotBlank()
+            )
         }
-
     }
 }
 
@@ -332,7 +412,12 @@ private fun RegisterMedicationsLight() {
                 modifier = Modifier.padding(horizontal = 20.dp),
             ) {
                 RegisterMedication(
-                    formState = MedicationFormState(),
+                    formState = MedicationFormState(
+                        presentation = MedicationPresentation.TABLET,
+                        name = "Paracetamol",
+                        dose = "10",
+                        unit = "unidades",
+                    ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact
                 )
@@ -355,7 +440,12 @@ private fun RegisterMedicationsDark() {
                 modifier = Modifier.padding(horizontal = 20.dp),
             ) {
                 RegisterMedication(
-                    formState = MedicationFormState(),
+                    formState = MedicationFormState(
+                        presentation = MedicationPresentation.INJECTION,
+                        name = "Paracetamol",
+                        dose = "500",
+                        unit = "mg",
+                    ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact
                 )

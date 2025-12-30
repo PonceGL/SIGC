@@ -195,7 +195,7 @@ private fun PatientDataLight() {
                 state = RegisterPatientUiState(
                     currentStep = 1,
                     patientName = "Juan Perez",
-                    isDobUnknown = true,
+                    isDobUnknown = false,
                     patientAgeInput = "35"
                 ),
                 onEvent = {},

@@ -1,5 +1,14 @@
 package com.poncegl.sigc.ui.feature.patients.domain.model
 
+enum class MedicationUnit(val label: String) {
+    PZAS("pzas"),
+    AMPS("amps"),
+    ML("mL"),
+    G("g"),
+    DOSE("dosis"),
+    UNITS("unidades"),
+}
+
 enum class MedicationPresentation(val label: String) {
     TABLET("Pastilla/Comprimido"),
     CAPSULE("Cápsula"),
@@ -26,38 +35,38 @@ enum class MedicationPresentation(val label: String) {
             // Sólidos contables
             TABLET, CAPSULE, SUPPOSITORY -> InventoryConfig(
                 contentLabel = "Piezas por caja",
-                containerLabel = "Cajas disponibles",
-                defaultUnit = "pzas"
+                containerLabel = "Cajas",
+                defaultUnit = MedicationUnit.PZAS.label
             )
             // Inyectables (Suelen venir en ampolletas dentro de cajas)
             INJECTION -> InventoryConfig(
                 contentLabel = "Ampolletas por caja",
-                containerLabel = "Cajas disponibles",
-                defaultUnit = "amps"
+                containerLabel = "Cajas",
+                defaultUnit = MedicationUnit.AMPS.label
             )
             // Líquidos (La unidad es el envase entero)
             SYRUP, SUSPENSION, LOTION, DROPS -> InventoryConfig(
                 contentLabel = "Contenido del envase",
-                containerLabel = "Envases disponibles",
-                defaultUnit = "mL"
+                containerLabel = "Envases",
+                defaultUnit = MedicationUnit.ML.label
             )
             // Semisólidos (Tubos o tarros)
             CREAM, OINTMENT, GEL, POWDER -> InventoryConfig(
                 contentLabel = "Contenido del tubo/tarro",
-                containerLabel = "Piezas disponibles",
-                defaultUnit = "g"
+                containerLabel = "Piezas",
+                defaultUnit = MedicationUnit.G.label
             )
             // Dosis medidas
             INHALER, SPRAY -> InventoryConfig(
                 contentLabel = "Dosis por unidad",
-                containerLabel = "Unidades disponibles",
-                defaultUnit = "dosis"
+                containerLabel = "Unidades",
+                defaultUnit = MedicationUnit.DOSE.label
             )
             // Fallback genérico
             OTHER -> InventoryConfig(
                 contentLabel = "Contenido por empaque",
-                containerLabel = "Empaques disponibles",
-                defaultUnit = "unidades"
+                containerLabel = "Empaques",
+                defaultUnit = MedicationUnit.UNITS.label
             )
         }
     }

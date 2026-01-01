@@ -31,7 +31,6 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -44,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,6 +54,7 @@ import androidx.compose.ui.window.Dialog
 import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcSelector
+import com.poncegl.sigc.ui.components.shared.SigcSwitch
 import com.poncegl.sigc.ui.components.shared.SigcTextField
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationUnit
@@ -274,7 +275,7 @@ fun RegisterMedication(
             // 5. INVENTARIO CONTEXTUAL (La magia ocurre aquí)
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), // Más sutil
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -355,11 +356,11 @@ fun RegisterMedication(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        SigcSwitch(
                             checked = formState.stockAlertThreshold != "0",
                             onCheckedChange = { isChecked ->
                                 onEvent(RegisterPatientEvent.MedAlertSwitchToggled(isChecked))
-                            },
+                            }
                         )
                     }
                 }
@@ -407,6 +408,7 @@ private fun RegisterMedicationsLight() {
                         name = "Paracetamol",
                         dose = "10",
                         unit = "unidades",
+                        stockAlertThreshold = "10"
                     ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact
@@ -435,6 +437,7 @@ private fun RegisterMedicationsDark() {
                         name = "Paracetamol",
                         dose = "500",
                         unit = "mg",
+                        stockAlertThreshold = "5"
                     ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact

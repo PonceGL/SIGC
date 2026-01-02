@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -28,8 +27,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,10 +47,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.poncegl.sigc.core.constants.UI
+import com.poncegl.sigc.core.util.formatTimeAMPM
 import com.poncegl.sigc.ui.components.shared.SigcButton
+import com.poncegl.sigc.ui.components.shared.SigcChipGroup
 import com.poncegl.sigc.ui.components.shared.SigcSelector
 import com.poncegl.sigc.ui.components.shared.SigcSwitch
 import com.poncegl.sigc.ui.components.shared.SigcTextField
@@ -63,8 +61,6 @@ import com.poncegl.sigc.ui.feature.patients.presentation.register.MedicationForm
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
 import com.poncegl.sigc.ui.theme.SIGCTheme
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,11 +75,6 @@ fun RegisterMedication(
     var expanded by remember { mutableStateOf(false) }
 
     val inventoryConfig = formState.presentation.getInventoryConfig()
-
-    fun formatTimeAMPM(localTime: LocalTime): String {
-        val formatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
-        return localTime.format(formatter)
-    }
 
     // --- SHEET DE SELECCIÓN DE TIPO ---
     if (showTypeSheet) {
@@ -243,50 +234,14 @@ fun RegisterMedication(
                     }
                 }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    formState.frequencyTimes.forEach { time ->
-                        val formatTime = formatTimeAMPM(time)
-                        InputChip(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            selected = true,
-                            onClick = { onEvent(RegisterPatientEvent.MedRemoveFrequencyTime(time)) },
-                            avatar = {
-                                Icon(
-                                    imageVector = Icons.Filled.AccessTime,
-                                    contentDescription = "Reloj de $formatTime",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = formatTime,
-                                    modifier = Modifier
-                                        .padding(vertical = 10.dp),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Borrar",
-                                    Modifier.size(16.dp)
-                                )
-                            },
-                            colors = InputChipDefaults.inputChipColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
-                            ),
-                        )
-                    }
-                }
+                SigcChipGroup(
+                    items = formState.frequencyTimes,
+                    onItemClick = { time ->
+                        onEvent(RegisterPatientEvent.MedRemoveFrequencyTime(time))
+                    },
+                    labelProvider = { time -> formatTimeAMPM(time) },
+                    leadingIconProvider = { Icons.Default.AccessTime }
+                )
             }
 
             // 4. DURACIÓN

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -43,13 +44,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.shared.SigcButton
@@ -63,6 +64,7 @@ import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatien
 import com.poncegl.sigc.ui.theme.SIGCTheme
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,6 +79,11 @@ fun RegisterMedication(
     var expanded by remember { mutableStateOf(false) }
 
     val inventoryConfig = formState.presentation.getInventoryConfig()
+
+    fun formatTimeAMPM(localTime: LocalTime): String {
+        val formatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
+        return localTime.format(formatter)
+    }
 
     // --- SHEET DE SELECCIÓN DE TIPO ---
     if (showTypeSheet) {
@@ -236,15 +243,34 @@ fun RegisterMedication(
                     }
                 }
 
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     formState.frequencyTimes.forEach { time ->
+                        val formatTime = formatTimeAMPM(time)
                         InputChip(
+                            modifier = Modifier
+                                .fillMaxWidth(),
                             selected = true,
                             onClick = { onEvent(RegisterPatientEvent.MedRemoveFrequencyTime(time)) },
-                            label = { Text(time.format(DateTimeFormatter.ofPattern("HH:mm"))) },
+                            avatar = {
+                                Icon(
+                                    imageVector = Icons.Filled.AccessTime,
+                                    contentDescription = "Reloj de $formatTime",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = formatTime,
+                                    modifier = Modifier
+                                        .padding(vertical = 10.dp),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            },
                             trailingIcon = {
                                 Icon(
                                     Icons.Default.Close,
@@ -256,7 +282,7 @@ fun RegisterMedication(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                selectedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                selectedLabelColor = MaterialTheme.colorScheme.primary
                             ),
                         )
                     }
@@ -408,7 +434,15 @@ private fun RegisterMedicationsLight() {
                         name = "Paracetamol",
                         dose = "10",
                         unit = "unidades",
-                        stockAlertThreshold = "10"
+                        stockAlertThreshold = "10",
+                        frequencyTimes = listOf(
+                            LocalTime.of(8, 0),
+                            LocalTime.of(12, 30),
+                            LocalTime.of(14, 0),
+                            LocalTime.of(18, 30),
+                            LocalTime.of(20, 0),
+                            LocalTime.of(22, 0),
+                        )
                     ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact
@@ -437,7 +471,15 @@ private fun RegisterMedicationsDark() {
                         name = "Paracetamol",
                         dose = "500",
                         unit = "mg",
-                        stockAlertThreshold = "5"
+                        stockAlertThreshold = "5",
+                        frequencyTimes = listOf(
+                            LocalTime.of(8, 0),
+                            LocalTime.of(12, 30),
+                            LocalTime.of(14, 0),
+                            LocalTime.of(18, 30),
+                            LocalTime.of(20, 0),
+                            LocalTime.of(22, 0),
+                        )
                     ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact

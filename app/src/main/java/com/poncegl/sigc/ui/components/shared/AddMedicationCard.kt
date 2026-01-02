@@ -31,7 +31,7 @@ import com.poncegl.sigc.ui.theme.SIGCTheme
 fun AddMedicationCard(onAction: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
         ),
         modifier = Modifier
             .fillMaxWidth()

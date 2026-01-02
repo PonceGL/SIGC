@@ -34,6 +34,7 @@ import com.poncegl.sigc.ui.components.medication.RegisterMedication
 import com.poncegl.sigc.ui.components.shared.AddMedicationCard
 import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcButtonType
+import com.poncegl.sigc.ui.components.shared.SigcInputChip
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -84,6 +85,23 @@ fun MedicationsData(
                 }
             } else {
                 // Todo: Lista de medicamentos registrados (tal vez SwipeToDismissBox) aún no existe
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    addedMedications.forEach { item ->
+                        SigcInputChip(
+                            modifier = Modifier.fillMaxWidth(),
+                            label = item.name,
+                            onClick = { },
+                            selected = true,
+                        )
+                    }
+                }
+
 
                 SigcButton(
                     text = "Agregar otro medicamento",

@@ -1,6 +1,7 @@
 package com.poncegl.sigc.ui.components.registerPatient
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -95,7 +96,7 @@ fun RegisterPatientContent(
     val onBackAction = {
         if (state.currentStep == 1 && state.isAddingMedication) {
             onEvent(RegisterPatientEvent.CancelAddingMedication)
-        } else if (state.currentStep > 1) {
+        } else if (state.currentStep > 0) {
             onEvent(RegisterPatientEvent.PreviousStep)
         } else {
             onNavigateToHome()

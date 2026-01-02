@@ -50,7 +50,7 @@ class RegisterPatientViewModel @Inject constructor(
             }
 
             is RegisterPatientEvent.PreviousStep -> {
-                if (_uiState.value.currentStep > 1) {
+                if (_uiState.value.currentStep > 0) {
                     _uiState.update { it.copy(currentStep = it.currentStep - 1) }
                 }
             }
@@ -141,7 +141,7 @@ class RegisterPatientViewModel @Inject constructor(
             is RegisterPatientEvent.MedReasonChanged -> updateMedForm { it.copy(usageReason = event.reason) }
 
             is RegisterPatientEvent.MedAddFrequencyTime -> updateMedForm {
-                val newTimes = (it.frequencyTimes + event.time).sorted()
+                val newTimes = (it.frequencyTimes + event.time).distinct().sorted()
                 it.copy(frequencyTimes = newTimes)
             }
 

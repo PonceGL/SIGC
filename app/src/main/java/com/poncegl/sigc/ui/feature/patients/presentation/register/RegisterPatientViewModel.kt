@@ -149,17 +149,18 @@ class RegisterPatientViewModel @Inject constructor(
                 it.copy(frequencyTimes = it.frequencyTimes - event.time)
             }
 
-            is RegisterPatientEvent.MedUnitsPerPackageChanged -> updateMedForm {
-                it.copy(unitsPerPackage = event.value)
+            is RegisterPatientEvent.MedUnitsPerPackageChanged -> updateMedForm { form ->
+                val newUnits = event.value
+                recalculateAlertState(form.copy(unitsPerPackage = newUnits))
             }
 
-            is RegisterPatientEvent.MedPackageCountChanged -> updateMedForm {
-                it.copy(packageCount = event.value)
+            is RegisterPatientEvent.MedPackageCountChanged -> updateMedForm { form ->
+                val newCount = event.value
+                recalculateAlertState(form.copy(packageCount = newCount))
             }
 
             is RegisterPatientEvent.MedAlertSwitchToggled -> updateMedForm {
-                val newThreshold = if (event.enabled) "5" else "0"
-                it.copy(stockAlertThreshold = newThreshold)
+                it.copy(isStockAlertEnabled = event.enabled)
             }
 
             // --- Paso 3 y 4 ---
@@ -200,6 +201,30 @@ class RegisterPatientViewModel @Inject constructor(
         }
     }
 
+    private fun recalculateAlertState(form: MedicationFormState): MedicationFormState {
+        val units = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
+        val packs = form.packageCount.toDoubleOrNull() ?: 0.0
+        val totalStock = units * packs
+
+        if (totalStock <= 0.0) {
+            return form.copy(isStockAlertEnabled = false)
+        }
+
+        val wasStockZero = (_uiState.value.medicationForm.unitsPerPackage.toDoubleOrNull()
+            ?: 0.0) * (_uiState.value.medicationForm.packageCount.toDoubleOrNull() ?: 0.0) <= 0.0
+
+        val shouldEnable = if (wasStockZero) true else form.isStockAlertEnabled
+
+        // TODO: Regla Futura / Caso Cremas vs Pastillas:
+        // Si tengo 2 tubos de crema, avisar a los "5" es imposible.
+        val smartThreshold = if (totalStock <= 5) "1" else form.stockAlertThreshold
+
+        return form.copy(
+            isStockAlertEnabled = shouldEnable,
+            stockAlertThreshold = smartThreshold
+        )
+    }
+
     private fun addMedicationToDraft() {
         val form = _uiState.value.medicationForm
         if (form.name.isBlank()) {
@@ -220,11 +245,17 @@ class RegisterPatientViewModel @Inject constructor(
 
         val stockUnit = form.presentation.getInventoryConfig().defaultUnit
 
+        val finalThreshold = if (form.isStockAlertEnabled) {
+            form.stockAlertThreshold.toIntOrNull() ?: 0
+        } else {
+            0
+        }
+
         val inventoryObj = if (totalStock > 0.0) {
             MedicationInventory(
                 currentStock = totalStock,
                 unit = stockUnit,
-                alertThreshold = form.stockAlertThreshold.toIntOrNull() ?: 0
+                alertThreshold = finalThreshold,
             )
         } else null
 

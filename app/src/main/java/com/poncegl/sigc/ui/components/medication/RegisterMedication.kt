@@ -248,7 +248,7 @@ fun RegisterMedication(
             SigcTextField(
                 value = formState.durationDays,
                 onValueChange = { onEvent(RegisterPatientEvent.MedDurationChanged(it)) },
-                label = "¿Por cuántos días?",
+                label = "¿Por cuántos días? (vación para indefinido)",
                 placeholder = "7",
                 keyboardType = KeyboardType.Number,
             )
@@ -325,23 +325,38 @@ fun RegisterMedication(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val uiUnits = formState.unitsPerPackage.toDoubleOrNull() ?: 0.0
+                        val uiPacks = formState.packageCount.toDoubleOrNull() ?: 0.0
+                        val uiTotal = uiUnits * uiPacks
+                        val hasStock = uiTotal > 0.0
+
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 "Alerta de stock bajo",
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = if (hasStock) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                )
                             )
+                            val thresholdText = if (hasStock && formState.isStockAlertEnabled)
+                                "Avisar cuando queden ${formState.stockAlertThreshold}"
+                            else "Recibe una alerta antes de quedarte sin medicamento"
+
                             Text(
-                                "Avisar cuando queden pocas unidades",
+                                text = thresholdText,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (hasStock) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                    alpha = 0.38f
+                                )
                             )
                         }
                         SigcSwitch(
-                            checked = formState.stockAlertThreshold != "0",
+                            checked = formState.isStockAlertEnabled,
                             onCheckedChange = { isChecked ->
                                 onEvent(RegisterPatientEvent.MedAlertSwitchToggled(isChecked))
-                            }
+                            },
+                            enabled = hasStock
                         )
                     }
                 }
@@ -392,11 +407,11 @@ private fun RegisterMedicationsLight() {
                         stockAlertThreshold = "10",
                         frequencyTimes = listOf(
                             LocalTime.of(8, 0),
-                            LocalTime.of(12, 30),
-                            LocalTime.of(14, 0),
-                            LocalTime.of(18, 30),
-                            LocalTime.of(20, 0),
-                            LocalTime.of(22, 0),
+//                            LocalTime.of(12, 30),
+//                            LocalTime.of(14, 0),
+//                            LocalTime.of(18, 30),
+//                            LocalTime.of(20, 0),
+//                            LocalTime.of(22, 0),
                         )
                     ),
                     onEvent = {},

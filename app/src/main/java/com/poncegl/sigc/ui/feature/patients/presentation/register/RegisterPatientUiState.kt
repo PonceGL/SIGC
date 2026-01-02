@@ -50,7 +50,8 @@ data class MedicationFormState(
     val durationDays: String = "",
     val unitsPerPackage: String = "",
     val packageCount: String = "",
-    val stockAlertThreshold: String = "0",
+    val isStockAlertEnabled: Boolean = false,
+    val stockAlertThreshold: String = "5",
     val instructions: String = "",
     val usageReason: String = ""
 )

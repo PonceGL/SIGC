@@ -58,12 +58,13 @@ fun SigcTextField(
     suffix: @Composable (() -> Unit)? = null,
     textStyle: TextStyle = LocalTextStyle.current,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
-minLines: Int = 1,
+    minLines: Int = 1,
 ) {
     val keyboardOptionsCustom = if (keyboardOptions != KeyboardOptions.Default) keyboardOptions else KeyboardOptions(
         keyboardType = keyboardType,
         imeAction = imeAction
     )
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,

@@ -21,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -40,6 +42,7 @@ fun SigcDatePicker(
     colors: DatePickerColors = DatePickerDefaults.colors()
 ) {
     var showModal by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     val dateStr = remember(selectedDate) {
         selectedDate?.let {
@@ -56,7 +59,13 @@ fun SigcDatePicker(
             label = label,
             readOnly = true,
             enabled = enabled,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged {
+                    if (it.isFocused && enabled) {
+                        showModal = true
+                    }
+                },
             trailingIcon = {
                 Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
             }
@@ -100,17 +109,24 @@ fun SigcDatePicker(
         )
 
         DatePickerDialog(
-            onDismissRequest = { showModal = false },
+            onDismissRequest = {
+                showModal = false
+                focusManager.clearFocus()
+            },
             confirmButton = {
                 TextButton(onClick = {
                     onDateSelected(datePickerState.selectedDateMillis)
                     showModal = false
+                    focusManager.clearFocus()
                 }) {
                     Text("Aceptar")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showModal = false }) {
+                TextButton(onClick = {
+                    showModal = false
+                    focusManager.clearFocus()
+                }) {
                     Text("Cancelar")
                 }
             }

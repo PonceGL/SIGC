@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePickerDefaults
@@ -26,6 +28,10 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,12 +54,17 @@ fun PatientData(
     widthSizeClass: WindowWidthSizeClass
 ) {
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
 
     // Fechas límite visuales | Hoy y hace 120 años
     val today = Calendar.getInstance().timeInMillis
     val minDate = Calendar.getInstance().apply {
         add(Calendar.YEAR, -120)
     }.timeInMillis
+
+    val isFormValid = state.patientName.isNotBlank() &&
+            (state.patientDob != null) &&
+            state.diagnosisName.isNotBlank()
 
     Column(
         modifier = Modifier
@@ -81,8 +92,14 @@ fun PatientData(
                 value = state.patientName,
                 onValueChange = { onEvent(RegisterPatientEvent.NameChanged(it)) },
                 label = "¿Cómo se llama el paciente?",
-                keyboardType = KeyboardType.Text,
-                isError = state.error != null && state.patientName.isBlank()
+                isError = state.error != null && state.patientName.isBlank(),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    keyboardType = KeyboardType.Text
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                )
             )
 
             AnimatedContent(
@@ -155,7 +172,10 @@ fun PatientData(
                 },
                 label = "¿Cuántos años tiene?",
                 keyboardType = KeyboardType.Number,
-                enabled = state.isDobUnknown
+                enabled = state.isDobUnknown,
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                )
             )
 
             // 5. DIAGNÓSTICO
@@ -165,14 +185,20 @@ fun PatientData(
                 label = "¿Cuál es su diagnóstico o estado actual?",
                 keyboardType = KeyboardType.Text,
                 modifier = Modifier.heightIn(130.dp),
-                singleLine = false
+                singleLine = false,
+                imeAction = ImeAction.Done,
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        if (isFormValid) {
+                            onEvent(RegisterPatientEvent.NextStep)
+                        } else {
+                            focusManager.clearFocus()
+                        }
+                    }
+                )
             )
 
             Spacer(modifier = Modifier.weight(1f))
-
-            val isFormValid = state.patientName.isNotBlank() &&
-                    (state.patientDob != null) &&
-                    state.diagnosisName.isNotBlank()
 
             SigcButton(
                 text = "Continuar",

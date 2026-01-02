@@ -321,7 +321,7 @@ fun RegisterMedication(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {

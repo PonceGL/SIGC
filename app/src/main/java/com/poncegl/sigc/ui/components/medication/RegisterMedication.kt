@@ -1,6 +1,13 @@
 package com.poncegl.sigc.ui.components.medication
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,21 +16,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,10 +48,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -56,7 +64,7 @@ import com.poncegl.sigc.ui.components.shared.SigcSelector
 import com.poncegl.sigc.ui.components.shared.SigcSwitch
 import com.poncegl.sigc.ui.components.shared.SigcTextField
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
-import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationUnit
+import com.poncegl.sigc.ui.feature.patients.domain.model.StockStrategy
 import com.poncegl.sigc.ui.feature.patients.presentation.register.MedicationFormState
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -72,9 +80,10 @@ fun RegisterMedication(
     val scrollState = rememberScrollState()
     var showTimePicker by remember { mutableStateOf(false) }
     var showTypeSheet by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
 
+    // Configuración contextual (Labels y Unidad)
     val inventoryConfig = formState.presentation.getInventoryConfig()
+    val isCalculatedStrategy = formState.presentation.strategy == StockStrategy.CALCULATED
 
     // --- SHEET DE SELECCIÓN DE TIPO ---
     if (showTypeSheet) {
@@ -122,265 +131,300 @@ fun RegisterMedication(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState)
+                .padding(bottom = 16.dp), // Padding extra para scroll
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp) // Más espacio entre bloques
         ) {
 
-            // 0. NOMBRE
-            SigcTextField(
-                value = formState.name,
-                onValueChange = { onEvent(RegisterPatientEvent.MedNameChanged(it)) },
-                label = "Nombre del medicamento",
-                placeholder = "Ejemplo: Paracetamol",
-                keyboardType = KeyboardType.Text,
-            )
+            // ==========================================
+            // BLOQUE A: DEFINICIÓN (¿Qué es?)
+            // ==========================================
+            SectionHeader(title = "Definición del producto")
 
-            // 1. SELECTOR DE TIPO (HEADER CONTEXTUAL)
-            SigcSelector(
-                value = formState.presentation.label,
-                label = "Tipo de medicamento",
-                onClick = { showTypeSheet = true },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // 2. DOSIS Y UNIDAD
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 SigcTextField(
-                    modifier = Modifier.weight(2f),
-                    value = formState.dose,
-                    onValueChange = { onEvent(RegisterPatientEvent.MedDoseChanged(it)) },
-                    label = "Dosis / Concentración",
-                    placeholder = "Ej: 500",
-                    keyboardType = KeyboardType.Number,
+                    value = formState.name,
+                    onValueChange = { onEvent(RegisterPatientEvent.MedNameChanged(it)) },
+                    label = "Nombre comercial",
+                    placeholder = "Ej: Paracetamol, Dermovate",
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                // SELECTOR DE TIPO
+                SigcSelector(
+                    value = formState.presentation.label,
+                    label = "Presentación / Formato",
+                    onClick = { showTypeSheet = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                Box(
-                    modifier = Modifier
-                        .weight(0.85f),
-                    contentAlignment = Alignment.TopEnd,
+                // CONCENTRACIÓN (Nuevo)
+                SigcTextField(
+                    value = formState.concentration,
+                    onValueChange = { onEvent(RegisterPatientEvent.MedConcentrationChanged(it)) },
+                    label = "Concentración (Opcional)",
+                    placeholder = "Ej: 500mg, 1%, 20mg/ml",
+                    helperText = "Ayuda a distinguir entre variantes del mismo medicamento."
+                )
+            }
+
+            HorizontalDivider()
+
+            // ==========================================
+            // BLOQUE B: TRATAMIENTO (¿Cómo se usa?)
+            // ==========================================
+            SectionHeader(title = "Tratamiento")
+
+            // 1. DOSIS (Solo visible para Calculables como Pastillas/Jarabes)
+            AnimatedVisibility(
+                visible = isCalculatedStrategy,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top, // Alineación Top por si hay error
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    SigcTextField(
+                        modifier = Modifier.weight(1f),
+                        value = formState.dose,
+                        onValueChange = { onEvent(RegisterPatientEvent.MedDoseChanged(it)) },
+                        label = "Cantidad por toma",
+                        placeholder = "Ej: 1, 0.5, 5",
+                        keyboardType = KeyboardType.Decimal,
+                        suffix = { Text(formState.unit) }
+                    )
 
-                    val medicationUnitArray: Array<MedicationUnit> = MedicationUnit.values()
-                    val medicationUnitList: List<MedicationUnit> = medicationUnitArray.toList()
-
-                    Box {
-
-                        SigcTextField(
-                            value = formState.unit,
-                            onValueChange = {},
-                            label = "",
-                            readOnly = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(textAlign = TextAlign.Center),
-                            singleLine = true,
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable { expanded = true }
-                        )
-                    }
-
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-
-                        medicationUnitList.forEach { option ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = option.label,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Right
-                                    )
-                                },
-                                onClick = {
-                                    onEvent(RegisterPatientEvent.MedUnitChanged(option.label))
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
+                    // Nota: Podríamos agregar un Dropdown de unidad aquí si quisiéramos cambiar mg/ml
                 }
             }
 
-            // 3. FRECUENCIA
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (!isCalculatedStrategy) {
+                // Mensaje informativo para Cremas/Otros
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            MaterialTheme.shapes.small
+                        )
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Para este formato, indica la aplicación en las instrucciones abajo.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+
+            // 2. FRECUENCIA (Días y Horas)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Frecuencia de toma", style = MaterialTheme.typography.labelLarge)
+
+                // Selector de Días (Nuevo Componente Inline)
+                DayOfWeekSelector(
+                    selectedDays = formState.frequencyDays,
+                    onToggleDay = { index ->
+                        onEvent(
+                            RegisterPatientEvent.MedToggleFrequencyDay(
+                                index
+                            )
+                        )
+                    }
+                )
+
+                // Selector de Horas
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "¿A qué horas se toma?",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        text = "Horarios",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
                     TextButton(onClick = { showTimePicker = true }) {
-                        Icon(Icons.Filled.Add, null, Modifier.size(12.dp))
+                        Icon(Icons.Filled.Add, null, Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Agregar hora", style = MaterialTheme.typography.bodySmall)
+                        Text("Agregar hora")
                     }
                 }
 
-                SigcChipGroup(
-                    items = formState.frequencyTimes,
-                    onItemClick = { time ->
-                        onEvent(RegisterPatientEvent.MedRemoveFrequencyTime(time))
-                    },
-                    labelProvider = { time -> formatTimeAMPM(time) },
-                    leadingIconProvider = { Icons.Default.AccessTime }
-                )
+                if (formState.frequencyTimes.isNotEmpty()) {
+                    SigcChipGroup(
+                        items = formState.frequencyTimes,
+                        onItemClick = { time ->
+                            onEvent(
+                                RegisterPatientEvent.MedRemoveFrequencyTime(
+                                    time
+                                )
+                            )
+                        },
+                        labelProvider = { formatTimeAMPM(it) },
+                        leadingIconProvider = { Icons.Default.AccessTime }
+                    )
+                } else {
+                    Text(
+                        "Sin horarios definidos (A demanda)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
 
-            // 4. DURACIÓN
-            SigcTextField(
-                value = formState.durationDays,
-                onValueChange = { onEvent(RegisterPatientEvent.MedDurationChanged(it)) },
-                label = "¿Por cuántos días? (vación para indefinido)",
-                placeholder = "7",
-                keyboardType = KeyboardType.Number,
-            )
+            // 3. DURACIÓN
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SigcTextField(
+                    modifier = Modifier.weight(1f),
+                    value = formState.durationDays,
+                    onValueChange = { onEvent(RegisterPatientEvent.MedDurationChanged(it)) },
+                    label = "Duración (Días)",
+                    placeholder = "7",
+                    keyboardType = KeyboardType.Number,
+                    enabled = !formState.isIndefinite
+                )
 
-            // 5. INVENTARIO CONTEXTUAL (La magia ocurre aquí)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(top = 8.dp) // Ajuste visual
+                ) {
+                    Text("Continuo", style = MaterialTheme.typography.labelSmall)
+                    SigcSwitch(
+                        checked = formState.isIndefinite,
+                        onCheckedChange = { onEvent(RegisterPatientEvent.MedIndefiniteToggled(it)) }
+                    )
+                }
+            }
+
+            HorizontalDivider()
+
+            // ==========================================
+            // BLOQUE C: INVENTARIO (¿Qué tienes?)
+            // ==========================================
+            SectionHeader(title = "Inventario inicial")
+
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "Inventario inicial",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    Text(
-                        text = "Ayuda a calcular cuándo se terminará el medicamento.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(5.dp))
-
+                    // Inputs de Cantidad
+                    // Context-Aware: Las etiquetas cambian según inventoryConfig (definido en ViewModel/Model)
                     SigcTextField(
                         value = formState.unitsPerPackage,
                         onValueChange = { onEvent(RegisterPatientEvent.MedUnitsPerPackageChanged(it)) },
-                        label = inventoryConfig.contentLabel,
+                        label = inventoryConfig.contentLabel, // Ej: "Piezas por caja" o "Tamaño envase"
                         placeholder = "0",
                         keyboardType = KeyboardType.Number,
-                        suffix = { Text(inventoryConfig.defaultUnit) }
+                        suffix = {
+                            if (inventoryConfig.defaultUnit.isNotEmpty()) Text(inventoryConfig.defaultUnit)
+                        }
                     )
 
                     SigcTextField(
                         value = formState.packageCount,
                         onValueChange = { onEvent(RegisterPatientEvent.MedPackageCountChanged(it)) },
-                        label = inventoryConfig.containerLabel,
+                        label = inventoryConfig.containerLabel, // Ej: "Cajas" o "Envases"
                         placeholder = "0",
                         keyboardType = KeyboardType.Number,
                     )
-                    val units = formState.unitsPerPackage.toDoubleOrNull() ?: 0.0
-                    val packs = formState.packageCount.toDoubleOrNull() ?: 0.0
-                    val total = units * packs
 
-                    if (total > 0) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = "Total en stock: ${total.toInt()} ${inventoryConfig.defaultUnit}",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
-
+                    // SMART ALERT SECTION
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val uiUnits = formState.unitsPerPackage.toDoubleOrNull() ?: 0.0
-                        val uiPacks = formState.packageCount.toDoubleOrNull() ?: 0.0
-                        val uiTotal = uiUnits * uiPacks
-                        val hasStock = uiTotal > 0.0
-
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 16.dp)
+                        ) {
                             Text(
-                                "Alerta de stock bajo",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = if (hasStock) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                )
+                                "Recordatorio de stock bajo",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                            val thresholdText = if (hasStock && formState.isStockAlertEnabled)
-                                "Avisar cuando queden ${formState.stockAlertThreshold}"
-                            else "Recibe una alerta antes de quedarte sin medicamento"
+
+                            // AQUÍ ESTÁ EL VALOR: Mostramos la descripción calculada por el ViewModel
+                            val description = formState.stockAlertDescription.ifBlank {
+                                "Ingresa datos de dosis e inventario para calcular."
+                            }
 
                             Text(
-                                text = thresholdText,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (hasStock) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                    alpha = 0.38f
-                                )
+                                text = description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (formState.stockAlertDescription.isNotBlank())
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+
                         SigcSwitch(
                             checked = formState.isStockAlertEnabled,
-                            onCheckedChange = { isChecked ->
-                                onEvent(RegisterPatientEvent.MedAlertSwitchToggled(isChecked))
+                            onCheckedChange = {
+                                onEvent(
+                                    RegisterPatientEvent.MedAlertSwitchToggled(
+                                        it
+                                    )
+                                )
                             },
-                            enabled = hasStock
+                            // Deshabilitar si no hay descripción válida calculada (opcional)
+                            enabled = formState.stockAlertDescription.isNotBlank()
                         )
                     }
                 }
             }
 
-            // 6. OPCIONALES
+            // ==========================================
+            // BLOQUE D: OPCIONALES
+            // ==========================================
             SigcTextField(
                 value = formState.instructions,
                 onValueChange = { onEvent(RegisterPatientEvent.MedInstructionsChanged(it)) },
-                label = "Indicación especial (opcional)",
-                placeholder = "Ej: Triturar pastilla",
+                label = "Instrucciones adicionales",
+                placeholder = "Ej: Aplicar capa fina, Triturar pastilla...",
+                singleLine = false,
+                maxLines = 3
             )
 
             SigcTextField(
                 value = formState.usageReason,
                 onValueChange = { onEvent(RegisterPatientEvent.MedReasonChanged(it)) },
-                label = "¿Para qué es? (opcional)",
-                placeholder = "Ej: Para el dolor",
+                label = "¿Para qué es? (Motivo)",
+                placeholder = "Ej: Para el dolor, Para la infección",
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             SigcButton(
-                text = "Guardar",
+                text = "Guardar Medicamento",
                 onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
                 modifier = Modifier.fillMaxWidth(),
                 startIcon = Icons.Default.Check,
@@ -390,7 +434,69 @@ fun RegisterMedication(
     }
 }
 
-@Preview(name = "1. Mobile Light", device = "id:pixel_5", showBackground = true)
+// --- COMPONENTES AUXILIARES (Locales para mantener atomicidad visual) ---
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun DayOfWeekSelector(
+    selectedDays: Set<Int>,
+    onToggleDay: (Int) -> Unit
+) {
+    val days = listOf("L", "M", "M", "J", "V", "S", "D")
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        days.forEachIndexed { index, label ->
+            val dayIndex = index + 1 // 1..7
+            val isSelected = selectedDays.contains(dayIndex)
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                    .clickable { onToggleDay(dayIndex) }
+                    .border(
+                        width = 1.dp,
+                        color = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outline.copy(
+                            alpha = 0.5f
+                        ),
+                        shape = CircleShape
+                    )
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "1. Mobile Light",
+    device = "id:pixel_5",
+    showBackground = true
+)
 @Composable
 private fun RegisterMedicationsLight() {
     SIGCTheme(darkTheme = false) {
@@ -402,17 +508,21 @@ private fun RegisterMedicationsLight() {
                     formState = MedicationFormState(
                         presentation = MedicationPresentation.TABLET,
                         name = "Paracetamol",
-                        dose = "10",
-                        unit = "unidades",
-                        stockAlertThreshold = "10",
+                        concentration = "500 mg", // Nuevo campo visible
+                        dose = "1",
+                        unit = "pzas",
+                        // Simulación: Toma 1 cada 8 horas (3 veces)
                         frequencyTimes = listOf(
                             LocalTime.of(8, 0),
-//                            LocalTime.of(12, 30),
-//                            LocalTime.of(14, 0),
-//                            LocalTime.of(18, 30),
-//                            LocalTime.of(20, 0),
-//                            LocalTime.of(22, 0),
-                        )
+                            LocalTime.of(16, 0),
+                            LocalTime.of(23, 0)
+                        ),
+                        // Inventario: 2 cajas de 12
+                        unitsPerPackage = "12",
+                        packageCount = "2",
+                        isStockAlertEnabled = true,
+                        // El ViewModel habría calculado esto:
+                        stockAlertDescription = "Avisar cuando queden 9 pzas (aprox. 3 días)"
                     ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact
@@ -437,22 +547,104 @@ private fun RegisterMedicationsDark() {
             ) {
                 RegisterMedication(
                     formState = MedicationFormState(
-                        presentation = MedicationPresentation.INJECTION,
-                        name = "Paracetamol",
-                        dose = "500",
-                        unit = "mg",
-                        stockAlertThreshold = "5",
-                        frequencyTimes = listOf(
-                            LocalTime.of(8, 0),
-                            LocalTime.of(12, 30),
-                            LocalTime.of(14, 0),
-                            LocalTime.of(18, 30),
-                            LocalTime.of(20, 0),
-                            LocalTime.of(22, 0),
-                        )
+                        presentation = MedicationPresentation.CREAM, // Esto activa la estrategia BY_CONTAINER
+                        name = "Betametasona",
+                        concentration = "0.05%",
+                        // Nota: dose y unit se ignoran en la UI para cremas
+                        unitsPerPackage = "40", // 40g (Informativo)
+                        packageCount = "2",     // 2 Tubos
+
+                        // Instrucciones textuales en lugar de dosis numérica
+                        instructions = "Aplicar una capa fina en la zona afectada tras el baño.",
+
+                        isStockAlertEnabled = true,
+                        // Lógica fija para envases:
+                        stockAlertDescription = "Avisar cuando quede el último envase"
                     ),
                     onEvent = {},
                     widthSizeClass = WindowWidthSizeClass.Compact
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "3. Foldable Dark",
+    device = "id:pixel_fold",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun RegisterMedicationsFoldDark() {
+    SIGCTheme(darkTheme = true) {
+        Surface {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+            ) {
+                RegisterMedication(
+                    formState = MedicationFormState(
+                        presentation = MedicationPresentation.SYRUP,
+                        name = "Tempra",
+                        concentration = "Pediátrico",
+                        dose = "5", // mL
+                        unit = "mL",
+
+                        // Frecuencia: Solo Lunes, Miércoles y Viernes
+                        frequencyDays = setOf(1, 3, 5),
+                        frequencyTimes = listOf(LocalTime.of(10, 0)),
+
+                        unitsPerPackage = "120", // 120 mL botella
+                        packageCount = "1",
+
+                        // Indefinido activado
+                        isIndefinite = true,
+
+                        stockAlertDescription = "Avisar cuando queden 45 mL (aprox. 3 días)"
+                    ),
+                    onEvent = {},
+                    widthSizeClass = WindowWidthSizeClass.Compact,
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "4. Tablet Dark",
+    device = "id:pixel_tablet",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun RegisterMedicationsTabletDark() {
+    SIGCTheme(darkTheme = true) {
+        Surface {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+            ) {
+                RegisterMedication(
+                    formState = MedicationFormState(
+                        presentation = MedicationPresentation.SYRUP,
+                        name = "Tempra",
+                        concentration = "Pediátrico",
+                        dose = "5", // mL
+                        unit = "mL",
+
+                        // Frecuencia: Solo Lunes, Miércoles y Viernes
+                        frequencyDays = setOf(1, 3, 5),
+                        frequencyTimes = listOf(LocalTime.of(10, 0)),
+
+                        unitsPerPackage = "120", // 120 mL botella
+                        packageCount = "1",
+
+                        // Indefinido activado
+                        isIndefinite = true,
+
+                        stockAlertDescription = "Avisar cuando queden 45 mL (aprox. 3 días)"
+                    ),
+                    onEvent = {},
+                    widthSizeClass = WindowWidthSizeClass.Expanded,
                 )
             }
         }

@@ -1,5 +1,6 @@
 package com.poncegl.sigc.ui.feature.patients.presentation.register
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poncegl.sigc.core.util.NetworkMonitor
@@ -9,6 +10,7 @@ import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationConfig
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationInventory
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
 import com.poncegl.sigc.ui.feature.patients.domain.model.Patient
+import com.poncegl.sigc.ui.feature.patients.domain.model.StockStrategy
 import com.poncegl.sigc.ui.feature.patients.domain.usecase.AddMedicationUseCase
 import com.poncegl.sigc.ui.feature.patients.domain.usecase.CreateCarePlanUseCase
 import com.poncegl.sigc.ui.feature.patients.domain.usecase.CreatePatientUseCase
@@ -62,30 +64,19 @@ class RegisterPatientViewModel @Inject constructor(
             is RegisterPatientEvent.NameChanged -> _uiState.update { it.copy(patientName = event.name) }
             is RegisterPatientEvent.DiagnosisChanged -> _uiState.update { it.copy(diagnosisName = event.diagnosis) }
             is RegisterPatientEvent.DobUnknownChanged -> _uiState.update { it.copy(isDobUnknown = event.isUnknown) }
-
             is RegisterPatientEvent.DobChanged -> _uiState.update {
-                val calculatedAge = try {
+                val age = try {
                     Period.between(event.date, LocalDate.now()).years.toString()
                 } catch (e: Exception) {
                     ""
                 }
-                it.copy(
-                    patientDob = event.date,
-                    isDobUnknown = false,
-                    patientAgeInput = calculatedAge
-                )
+                it.copy(patientDob = event.date, isDobUnknown = false, patientAgeInput = age)
             }
 
             is RegisterPatientEvent.AgeChanged -> _uiState.update {
-                val calculatedDate = if (event.age.isNotBlank()) {
-                    val ageInt = event.age.toLongOrNull() ?: 0
-                    LocalDate.now().minusYears(ageInt)
-                } else null
-                it.copy(
-                    patientAgeInput = event.age,
-                    patientDob = calculatedDate,
-                    isDobUnknown = true
-                )
+                val date = if (event.age.isNotBlank()) LocalDate.now()
+                    .minusYears(event.age.toLongOrNull() ?: 0) else null
+                it.copy(patientAgeInput = event.age, patientDob = date, isDobUnknown = true)
             }
 
             // --- Paso 2: Gestión Medicamentos ---
@@ -97,73 +88,65 @@ class RegisterPatientViewModel @Inject constructor(
                 it.copy(isAddingMedication = false, medicationForm = MedicationFormState())
             }
 
-            is RegisterPatientEvent.SaveMedicationToList -> addMedicationToDraft()
             is RegisterPatientEvent.RemoveMedicationFromList -> {
-                _uiState.update { state ->
-                    state.copy(addedMedications = state.addedMedications.filterNot { it.tempId == event.tempId })
-                }
+                _uiState.update { state -> state.copy(addedMedications = state.addedMedications.filterNot { it.tempId == event.tempId }) }
             }
 
-            // --- Paso 2: Inputs Formulario ---
-            is RegisterPatientEvent.MedPresentationChanged -> updateMedForm {
-                event.presentation.getInventoryConfig()
+            is RegisterPatientEvent.SaveMedicationToList -> addMedicationToDraft()
 
-                // Si es líquido -> mL, si es sólido -> mg (o nada), si es crema -> g
-                val suggestedDoseUnit = when (event.presentation) {
-                    MedicationPresentation.SYRUP,
-                    MedicationPresentation.SUSPENSION,
-                    MedicationPresentation.LOTION,
-                    MedicationPresentation.DROPS,
-                    MedicationPresentation.INJECTION -> "mL" // Inyecciones suelen ser mL
+            // --- Paso 2: Formulario ---
+            is RegisterPatientEvent.MedPresentationChanged -> handlePresentationChange(event.presentation)
 
-                    MedicationPresentation.CREAM,
-                    MedicationPresentation.OINTMENT,
-                    MedicationPresentation.GEL,
-                    MedicationPresentation.POWDER -> "g"
+            is RegisterPatientEvent.MedNameChanged -> updateMedForm { it.copy(name = event.name) }
+            is RegisterPatientEvent.MedConcentrationChanged -> updateMedForm { it.copy(concentration = event.value) }
 
-                    MedicationPresentation.INHALER,
-                    MedicationPresentation.SPRAY -> "dosis"
+            is RegisterPatientEvent.MedDoseChanged -> updateMedForm {
+                recalculateAlertState(it.copy(dose = event.dose))
+            }
 
-                    else -> "mg" // Default para pastillas
-                }
+            is RegisterPatientEvent.MedUnitChanged -> updateMedForm { it.copy(unit = event.unit) }
 
-                it.copy(
-                    presentation = event.presentation,
-                    unit = suggestedDoseUnit
+            is RegisterPatientEvent.MedAddFrequencyTime -> updateMedForm {
+                recalculateAlertState(
+                    it.copy(
+                        frequencyTimes = (it.frequencyTimes + event.time).distinct().sorted()
+                    )
                 )
             }
 
-            is RegisterPatientEvent.MedNameChanged -> updateMedForm { it.copy(name = event.name) }
-            is RegisterPatientEvent.MedDoseChanged -> updateMedForm { it.copy(dose = event.dose) }
-            is RegisterPatientEvent.MedUnitChanged -> updateMedForm { it.copy(unit = event.unit) }
+            is RegisterPatientEvent.MedRemoveFrequencyTime -> updateMedForm {
+                recalculateAlertState(it.copy(frequencyTimes = it.frequencyTimes - event.time))
+            }
+
+            is RegisterPatientEvent.MedToggleFrequencyDay -> updateMedForm { form ->
+                val newDays = if (form.frequencyDays.contains(event.dayIndex)) {
+                    form.frequencyDays - event.dayIndex
+                } else {
+                    form.frequencyDays + event.dayIndex
+                }
+                recalculateAlertState(form.copy(frequencyDays = newDays))
+            }
+
+            is RegisterPatientEvent.MedIndefiniteToggled -> updateMedForm { it.copy(isIndefinite = event.isIndefinite) }
             is RegisterPatientEvent.MedDurationChanged -> updateMedForm { it.copy(durationDays = event.days) }
+
             is RegisterPatientEvent.MedInstructionsChanged -> updateMedForm { it.copy(instructions = event.text) }
             is RegisterPatientEvent.MedReasonChanged -> updateMedForm { it.copy(usageReason = event.reason) }
 
-            is RegisterPatientEvent.MedAddFrequencyTime -> updateMedForm {
-                val newTimes = (it.frequencyTimes + event.time).distinct().sorted()
-                it.copy(frequencyTimes = newTimes)
+            // Inventario
+            is RegisterPatientEvent.MedUnitsPerPackageChanged -> updateMedForm {
+                recalculateAlertState(it.copy(unitsPerPackage = event.value))
             }
 
-            is RegisterPatientEvent.MedRemoveFrequencyTime -> updateMedForm {
-                it.copy(frequencyTimes = it.frequencyTimes - event.time)
-            }
-
-            is RegisterPatientEvent.MedUnitsPerPackageChanged -> updateMedForm { form ->
-                val newUnits = event.value
-                recalculateAlertState(form.copy(unitsPerPackage = newUnits))
-            }
-
-            is RegisterPatientEvent.MedPackageCountChanged -> updateMedForm { form ->
-                val newCount = event.value
-                recalculateAlertState(form.copy(packageCount = newCount))
+            is RegisterPatientEvent.MedPackageCountChanged -> updateMedForm {
+                recalculateAlertState(it.copy(packageCount = event.value))
             }
 
             is RegisterPatientEvent.MedAlertSwitchToggled -> updateMedForm {
                 it.copy(isStockAlertEnabled = event.enabled)
             }
 
-            // --- Paso 3 y 4 ---
+            // --- Paso 3 y 4 (Sin cambios) ---
             is RegisterPatientEvent.DoctorNameChanged -> _uiState.update { it.copy(doctorName = event.name) }
             is RegisterPatientEvent.DoctorPhoneChanged -> _uiState.update { it.copy(doctorPhone = event.phone) }
             is RegisterPatientEvent.EventDescriptionChanged -> _uiState.update {
@@ -184,6 +167,21 @@ class RegisterPatientViewModel @Inject constructor(
         _uiState.update { it.copy(medicationForm = updater(it.medicationForm)) }
     }
 
+    private fun handlePresentationChange(presentation: MedicationPresentation) {
+        val inventoryConfig = presentation.getInventoryConfig()
+
+        updateMedForm { form ->
+            form.copy(
+                presentation = presentation,
+                unit = inventoryConfig.defaultUnit,
+                unitsPerPackage = "",
+                packageCount = "",
+                stockAlertThreshold = "",
+                stockAlertDescription = ""
+            )
+        }
+    }
+
     private fun validateCurrentStep(): Boolean {
         val state = _uiState.value
         return when (state.currentStep) {
@@ -202,72 +200,121 @@ class RegisterPatientViewModel @Inject constructor(
     }
 
     private fun recalculateAlertState(form: MedicationFormState): MedicationFormState {
-        val units = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
-        val packs = form.packageCount.toDoubleOrNull() ?: 0.0
-        val totalStock = units * packs
+        val strategy = form.presentation.strategy
+        val contentSize = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
+        val packCount = form.packageCount.toDoubleOrNull() ?: 0.0
 
-        if (totalStock <= 0.0) {
-            return form.copy(isStockAlertEnabled = false)
+        // 1. Cálculo de Stock Real según estrategia
+        val currentTotalStock = when (strategy) {
+            StockStrategy.CALCULATED -> contentSize * packCount
+            StockStrategy.BY_CONTAINER -> packCount
         }
 
-        val wasStockZero = (_uiState.value.medicationForm.unitsPerPackage.toDoubleOrNull()
-            ?: 0.0) * (_uiState.value.medicationForm.packageCount.toDoubleOrNull() ?: 0.0) <= 0.0
+        // Si no hay stock, desactivamos alerta o mostramos vacío
+        if (currentTotalStock <= 0.0) {
+            return form.copy(
+                stockAlertThreshold = "",
+                stockAlertDescription = "Ingresa inventario para configurar alerta"
+            )
+        }
 
-        val shouldEnable = if (wasStockZero) true else form.isStockAlertEnabled
+        // 2. Cálculo del Umbral (Threshold)
+        var newThreshold = ""
+        var newDescription = ""
 
-        // TODO: Regla Futura / Caso Cremas vs Pastillas:
-        // Si tengo 2 tubos de crema, avisar a los "5" es imposible.
-        val smartThreshold = if (totalStock <= 5) "1" else form.stockAlertThreshold
+        when (strategy) {
+            StockStrategy.CALCULATED -> {
+                // Necesitamos saber consumo diario para estimar 2 días
+                val dose = form.dose.toDoubleOrNull() ?: 0.0
+                val intakesPerDay = form.frequencyTimes.size
+                val activeDaysRatio = form.frequencyDays.size / 7.0
+
+                val dailyConsumption = dose * intakesPerDay * activeDaysRatio
+
+                if (dailyConsumption > 0) {
+                    // Regla: Avisar cuando queden 2 días de suministro
+                    val threeDaysSupply = dailyConsumption * 2
+                    // Redondeamos hacia arriba para seguridad
+                    newThreshold = kotlin.math.ceil(threeDaysSupply).toInt().toString()
+                    newDescription =
+                        "Avisar cuando queden $newThreshold ${form.unit} (aprox. 2 días)"
+                } else {
+                    // Fallback si faltan datos de dosis/frecuencia
+                    newThreshold = "3"
+                    newDescription = "Configura dosis para alerta inteligente"
+                }
+            }
+
+            StockStrategy.BY_CONTAINER -> {
+                // Regla fija: Avisar en el último envase
+                newThreshold = "1"
+                newDescription = "Avisar cuando quede el último envase"
+            }
+        }
 
         return form.copy(
-            isStockAlertEnabled = shouldEnable,
-            stockAlertThreshold = smartThreshold
+            stockAlertThreshold = newThreshold,
+            stockAlertDescription = newDescription,
+            isStockAlertEnabled = true
         )
     }
 
     private fun addMedicationToDraft() {
         val form = _uiState.value.medicationForm
         if (form.name.isBlank()) {
-            _uiState.update { it.copy(error = "Nombre del medicamento requerido") }
+            _uiState.update { it.copy(error = "Nombre requerido") }
             return
         }
 
-        val freqDesc = if (form.frequencyTimes.isNotEmpty()) {
-            "A las: " + form.frequencyTimes.joinToString(", ") { it.toString() }
-        } else {
-            "Según indicación"
-        }
+        val strategy = form.presentation.strategy
+        val contentSize = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
+        val packCount = form.packageCount.toDoubleOrNull() ?: 0.0
 
-        // CÁLCULO DE STOCK
-        val units = form.unitsPerPackage.toDoubleOrNull() ?: 0.0
-        val packs = form.packageCount.toDoubleOrNull() ?: 0.0
-        val totalStock = units * packs
+        // --- 1. Construcción del Objeto Inventario ---
+        val inventoryObj = if (packCount > 0.0) {
+            val quantity = when (strategy) {
+                StockStrategy.CALCULATED -> contentSize * packCount
+                StockStrategy.BY_CONTAINER -> packCount
+            }
 
-        val stockUnit = form.presentation.getInventoryConfig().defaultUnit
-
-        val finalThreshold = if (form.isStockAlertEnabled) {
-            form.stockAlertThreshold.toIntOrNull() ?: 0
-        } else {
-            0
-        }
-
-        val inventoryObj = if (totalStock > 0.0) {
             MedicationInventory(
-                currentStock = totalStock,
-                unit = stockUnit,
-                alertThreshold = finalThreshold,
+                quantityCurrent = quantity,
+                itemSize = contentSize,
+                unit = if(strategy == StockStrategy.BY_CONTAINER) "envases" else form.unit,
+                alertThreshold = form.stockAlertThreshold.toIntOrNull() ?: 0
             )
         } else null
 
+        // --- 2. Construcción de Configuración ---
+        val doseQty = if (strategy == StockStrategy.CALCULATED) form.dose.toDoubleOrNull() else null
+
+        // Descripción amigable de la dosis
+        val doseDesc = if (strategy == StockStrategy.CALCULATED) {
+            "${form.dose} ${form.unit}"
+        } else {
+            "Aplicación por envase"
+        }
+
+        val freqDesc = if (form.frequencyTimes.isNotEmpty()) {
+            val times = form.frequencyTimes.joinToString(", ")
+            val daysStr = if(form.frequencyDays.size == 7) "Todos los días" else "Días específicos"
+            "$daysStr a las: $times"
+        } else "Según indicación"
+
+        val configObj = MedicationConfig(
+            doseQuantity = doseQty,
+            doseDescription = doseDesc,
+            frequencyDescription = freqDesc,
+            frequencyDays = form.frequencyDays.toList(),
+            isIndefinite = form.isIndefinite
+        )
+
+        // --- 3. Creación del Draft ---
         val draft = DraftMedication(
             tempId = UUID.randomUUID().toString(),
             name = form.name,
             presentation = form.presentation,
-            config = MedicationConfig(
-                dose = "${form.dose} ${form.unit}",
-                frequencyDescription = freqDesc,
-                cronExpression = null
-            ),
+            config = configObj,
             inventory = inventoryObj,
             instructions = form.instructions.ifBlank { form.usageReason }
         )
@@ -279,6 +326,11 @@ class RegisterPatientViewModel @Inject constructor(
                 medicationForm = MedicationFormState()
             )
         }
+
+        Log.i("ViewModel addMedicationToDraft", "=================================")
+        Log.i("ViewModel addMedicationToDraft", "Added medication to draft: ${_uiState.value.patientName}")
+        Log.i("ViewModel addMedicationToDraft", "Added medication to draft: ${_uiState.value.addedMedications}")
+        Log.i("ViewModel addMedicationToDraft", "=================================")
     }
 
     private fun addHistoryToDraft() {

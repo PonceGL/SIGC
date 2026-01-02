@@ -9,6 +9,7 @@ import com.poncegl.sigc.ui.feature.patients.domain.model.CarePlanStatus
 import com.poncegl.sigc.ui.feature.patients.domain.model.Medication
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationConfig
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationInventory
+import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationPresentation
 import com.poncegl.sigc.ui.feature.patients.domain.model.MedicationType
 import com.poncegl.sigc.ui.feature.patients.domain.model.Patient
 import java.time.Instant
@@ -78,29 +79,57 @@ fun CarePlan.toDto(): CarePlanDto {
 // --- Medication Mappers ---
 
 fun MedicationDto.toDomain(): Medication {
+    // 1. Mapeo de Inventario
     val inventoryDomain = this.inventory?.let { map ->
+        val lastRefill = (map[MedicationFields.INVENTORY_LAST_REFILL] as? Date)?.toInstant()
+
         MedicationInventory(
-            currentStock = (map[MedicationFields.INVENTORY_STOCK] as? Number)?.toDouble() ?: 0.0,
+            quantityCurrent = (map[MedicationFields.INVENTORY_QUANTITY] as? Number)?.toDouble()
+                ?: 0.0,
+            itemSize = (map[MedicationFields.INVENTORY_ITEM_SIZE] as? Number)?.toDouble() ?: 0.0,
             unit = (map[MedicationFields.INVENTORY_UNIT] as? String) ?: "",
-            alertThreshold = (map[MedicationFields.INVENTORY_THRESHOLD] as? Number)?.toInt() ?: 0
+            alertThreshold = (map[MedicationFields.INVENTORY_THRESHOLD] as? Number)?.toInt() ?: 0,
+            lastRefillDate = lastRefill
         )
     }
 
+    // 2. Mapeo de Configuración
+    // Nota: frequencyDays viene como List<Long> en Firestore, casteamos seguro a Number y luego a Int
+    val daysList = (this.config[MedicationFields.CONFIG_FREQ_DAYS] as? List<*>)
+        ?.mapNotNull { (it as? Number)?.toInt() }
+        ?: emptyList()
+
     val configDomain = MedicationConfig(
-        dose = (this.config[MedicationFields.CONFIG_DOSE] as? String) ?: "",
-        frequencyDescription = (this.config[MedicationFields.CONFIG_FREQ] as? String) ?: "",
+        doseQuantity = (this.config[MedicationFields.CONFIG_DOSE_QTY] as? Number)?.toDouble(),
+        doseDescription = (this.config[MedicationFields.CONFIG_DOSE_DESC] as? String) ?: "",
+        frequencyDescription = (this.config[MedicationFields.CONFIG_FREQ_DESC] as? String) ?: "",
+        frequencyDays = daysList,
+        isIndefinite = (this.config[MedicationFields.CONFIG_IS_INDEFINITE] as? Boolean) ?: false,
         cronExpression = this.config[MedicationFields.CONFIG_CRON] as? String
     )
+
+    // 3. Mapeo de Enums (Con fallback seguro)
+    val typeEnum = try {
+        MedicationType.valueOf(this.type)
+    } catch (e: Exception) {
+        MedicationType.MEDICINE
+    }
+
+    val presentationEnum = this.presentation?.let {
+        try {
+            MedicationPresentation.valueOf(it)
+        } catch (e: Exception) {
+            null // O MedicationPresentation.OTHER para un default
+        }
+    }
 
     return Medication(
         id = this.id,
         carePlanId = this.carePlanId,
         name = this.name,
-        type = try {
-            MedicationType.valueOf(this.type)
-        } catch (e: Exception) {
-            MedicationType.MEDICINE
-        },
+        concentration = this.concentration,
+        type = typeEnum,
+        presentation = presentationEnum,
         inventory = inventoryDomain,
         config = configDomain,
         instructions = this.instructions,
@@ -111,15 +140,20 @@ fun MedicationDto.toDomain(): Medication {
 fun Medication.toDto(): MedicationDto {
     val inventoryMap = this.inventory?.let { inv ->
         mapOf(
-            MedicationFields.INVENTORY_STOCK to inv.currentStock,
+            MedicationFields.INVENTORY_QUANTITY to inv.quantityCurrent,
+            MedicationFields.INVENTORY_ITEM_SIZE to inv.itemSize,
             MedicationFields.INVENTORY_UNIT to inv.unit,
-            MedicationFields.INVENTORY_THRESHOLD to inv.alertThreshold
-        )
+            MedicationFields.INVENTORY_THRESHOLD to inv.alertThreshold,
+            MedicationFields.INVENTORY_LAST_REFILL to inv.lastRefillDate?.let { Date.from(it) }
+        ).filterValues { it != null }
     }
 
     val configMap = mapOf(
-        MedicationFields.CONFIG_DOSE to this.config.dose,
-        MedicationFields.CONFIG_FREQ to this.config.frequencyDescription,
+        MedicationFields.CONFIG_DOSE_QTY to this.config.doseQuantity,
+        MedicationFields.CONFIG_DOSE_DESC to this.config.doseDescription,
+        MedicationFields.CONFIG_FREQ_DESC to this.config.frequencyDescription,
+        MedicationFields.CONFIG_FREQ_DAYS to this.config.frequencyDays,
+        MedicationFields.CONFIG_IS_INDEFINITE to this.config.isIndefinite,
         MedicationFields.CONFIG_CRON to this.config.cronExpression
     ).filterValues { it != null }
 
@@ -127,8 +161,10 @@ fun Medication.toDto(): MedicationDto {
         id = this.id,
         carePlanId = this.carePlanId,
         name = this.name,
+        concentration = this.concentration,
         type = this.type.name,
-        inventory = inventoryMap,
+        presentation = this.presentation?.name,
+        inventory = inventoryMap as? Map<String, Any>,
         config = configMap as Map<String, Any>,
         instructions = this.instructions,
         createdAt = Date.from(this.createdAt)

@@ -13,54 +13,57 @@ data class RegisterPatientUiState(
     val error: String? = null,
     val currentStep: Int = 0,
     val isComplete: Boolean = false,
-
     val isOfflineMode: Boolean = false,
 
-    // --- Paso 1: Datos del Paciente ---
+    // Paso 1
     val patientName: String = "",
     val patientDob: LocalDate? = null,
     val patientAgeInput: String = "",
     val isDobUnknown: Boolean = false,
     val diagnosisName: String = "",
 
-    // --- Paso 2: Medicamentos ---
+    // Paso 2
     val addedMedications: List<DraftMedication> = emptyList(),
     val isAddingMedication: Boolean = false,
     val medicationForm: MedicationFormState = MedicationFormState(),
 
-    // --- Paso 3: Doctor ---
+    // Paso 3 y 4...
     val doctorName: String = "",
     val doctorPhone: String = "",
-
-    // --- Paso 4: Historial ---
     val historyEvents: List<LogEntry> = emptyList(),
     val eventDescription: String = "",
     val eventDate: LocalDate = LocalDate.now()
 )
 
-/**
- * Estado del formulario de "Agregar Medicamento" (Sheet/Dialog)
- */
 data class MedicationFormState(
     val presentation: MedicationPresentation = MedicationPresentation.TABLET,
     val name: String = "",
+    val concentration: String = "",
+
+    // Tratamiento
     val dose: String = "",
     val unit: String = "mg",
     val frequencyTimes: List<LocalTime> = emptyList(),
+    val frequencyDays: Set<Int> = setOf(1, 2, 3, 4, 5, 6, 7),
+    val isIndefinite: Boolean = false,
     val durationDays: String = "",
+
+    // Inventario
     val unitsPerPackage: String = "",
-    val packageCount: String = "",
-    val isStockAlertEnabled: Boolean = false,
-    val stockAlertThreshold: String = "5",
+    val packageCount: String = "",    // Envases (2 cajas)
+
+    // Alertas
+    val isStockAlertEnabled: Boolean = true,
+    val stockAlertThreshold: String = "",
+    val stockAlertDescription: String = "",
+
+    // Extras
     val instructions: String = "",
     val usageReason: String = ""
 )
 
-/**
- * Representación visual del medicamento en la lista antes de guardar
- */
 data class DraftMedication(
-    val tempId: String, // UUID temporal para borrar de la lista UI
+    val tempId: String,
     val name: String,
     val presentation: MedicationPresentation?,
     val config: MedicationConfig,

@@ -40,12 +40,14 @@ fun SigcTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    helperText: String? = null,
     placeholder: String? = null,
     icon: ImageVector? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
-    imeAction: ImeAction = ImeAction.Next,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    imeAction: ImeAction = ImeAction.Next,
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
     onTogglePassword: (() -> Unit)? = null,
@@ -55,11 +57,18 @@ fun SigcTextField(
     isError: Boolean = false,
     suffix: @Composable (() -> Unit)? = null,
     textStyle: TextStyle = LocalTextStyle.current,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+minLines: Int = 1,
 ) {
+    val keyboardOptionsCustom = if (keyboardOptions != KeyboardOptions.Default) keyboardOptions else KeyboardOptions(
+        keyboardType = keyboardType,
+        imeAction = imeAction
+    )
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
+        supportingText = helperText?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
         leadingIcon = if (icon != null) {
             { Icon(imageVector = icon, contentDescription = null) }
@@ -81,10 +90,9 @@ fun SigcTextField(
         isError = isError,
         suffix = suffix,
         textStyle = textStyle,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = imeAction
-        ),
+        maxLines = maxLines,
+        minLines = minLines,
+        keyboardOptions = keyboardOptionsCustom,
         keyboardActions = keyboardActions,
         visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         shape = RoundedCornerShape(12.dp),

@@ -42,7 +42,7 @@ data class MedicationFormState(
 
     // Tratamiento
     val dose: String = "",
-    val unit: String = "mg",
+    val unit: String = "pzas",
     val frequencyTimes: List<LocalTime> = emptyList(),
     val frequencyDays: Set<Int> = setOf(1, 2, 3, 4, 5, 6, 7),
     val isIndefinite: Boolean = false,

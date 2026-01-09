@@ -4,7 +4,7 @@
     <style name="Theme.SIGC.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/background</item>
 
-        <item name="windowSplashScreenAnimatedIcon">@drawable/sigc_icon</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/sigc_icon_splashscreen</item>
 
         <item name="postSplashScreenTheme">@style/Theme.SIGC</item>
     </style>

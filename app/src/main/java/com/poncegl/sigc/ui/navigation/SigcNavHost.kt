@@ -23,6 +23,8 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
     ) {
         authGraph(navController, windowSize)
 
+        patientGraph(navController, windowSize)
+
         composable(LegalsDestination.route) {
             LegalsScreen()
         }
@@ -36,6 +38,9 @@ fun SigcNavHost(startDestination: String, windowSize: WindowWidthSizeClass) {
                             inclusive = true
                         }
                     }
+                },
+                onNavigateToRegisterPatient = {
+                    navController.navigate(RegisterPatientDestination.route)
                 }
             )
         }

@@ -12,6 +12,7 @@ object UserFields {
     const val LAST_LOGIN_AT = "lastLoginAt"
     const val REGISTRATION_METHOD = "registrationMethod"
     const val REGISTRATION_PLATFORM = "registrationPlatform"
+    const val ACTIVE_TEAMS = "activeTeams"
 
     val IMMUTABLE_FIELDS = setOf(
         ID,
@@ -31,7 +32,8 @@ data class UserDto(
     val updatedAt: Date?,
     val lastLoginAt: Date?,
     val registrationMethod: String,
-    val registrationPlatform: String
+    val registrationPlatform: String,
+    val activeTeams: List<Map<String, String>>? = null
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
         UserFields.ID to id,
@@ -42,6 +44,7 @@ data class UserDto(
         UserFields.UPDATED_AT to updatedAt,
         UserFields.LAST_LOGIN_AT to lastLoginAt,
         UserFields.REGISTRATION_METHOD to registrationMethod,
-        UserFields.REGISTRATION_PLATFORM to registrationPlatform
+        UserFields.REGISTRATION_PLATFORM to registrationPlatform,
+        UserFields.ACTIVE_TEAMS to activeTeams
     )
 }

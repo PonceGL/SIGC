@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -23,10 +24,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.ui.theme.SIGCTheme
@@ -37,23 +40,41 @@ fun SigcTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    helperText: String? = null,
+    placeholder: String? = null,
     icon: ImageVector? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
-    imeAction: ImeAction = ImeAction.Next,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    imeAction: ImeAction = ImeAction.Next,
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
     onTogglePassword: (() -> Unit)? = null,
+    readOnly: Boolean = false,
     enabled: Boolean = true,
+    singleLine: Boolean = true,
+    isError: Boolean = false,
+    suffix: @Composable (() -> Unit)? = null,
+    textStyle: TextStyle = LocalTextStyle.current,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    minLines: Int = 1,
 ) {
+    val keyboardOptionsCustom = if (keyboardOptions != KeyboardOptions.Default) keyboardOptions else KeyboardOptions(
+        keyboardType = keyboardType,
+        imeAction = imeAction
+    )
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
+        supportingText = helperText?.let { { Text(it) } },
+        placeholder = placeholder?.let { { Text(it) } },
         leadingIcon = if (icon != null) {
             { Icon(imageVector = icon, contentDescription = null) }
         } else null,
-        trailingIcon = if (isPassword && onTogglePassword != null) {
+        trailingIcon = trailingIcon ?: if (isPassword && onTogglePassword != null) {
             {
                 IconButton(onClick = onTogglePassword) {
                     Icon(
@@ -64,12 +85,15 @@ fun SigcTextField(
             }
         } else null,
         modifier = modifier.fillMaxWidth(),
-        singleLine = true,
+        singleLine = singleLine,
         enabled = enabled,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = imeAction
-        ),
+        readOnly = readOnly,
+        isError = isError,
+        suffix = suffix,
+        textStyle = textStyle,
+        maxLines = maxLines,
+        minLines = minLines,
+        keyboardOptions = keyboardOptionsCustom,
         keyboardActions = keyboardActions,
         visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         shape = RoundedCornerShape(12.dp),
@@ -138,7 +162,7 @@ private fun PreviewSigcTextFieldDarkPassword() {
                     icon = Icons.Default.Lock,
                     keyboardType = KeyboardType.Password,
                     isPassword = true,
-                    isPasswordVisible = false, // Simulamos estado oculto
+                    isPasswordVisible = false,
                     onTogglePassword = {}
                 )
             }
@@ -161,7 +185,7 @@ private fun PreviewSigcTextFieldNoIcon() {
                     value = "Juan Pérez",
                     onValueChange = {},
                     label = "Nombre completo",
-                    icon = null // Probamos que no rompa el layout
+                    icon = null
                 )
             }
         }
@@ -185,6 +209,54 @@ private fun PreviewSigcTextFieldDisabled() {
                     label = "Campo deshabilitado",
                     icon = Icons.Default.Email,
                     enabled = false
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "5. Con Placeholder",
+    device = "id:pixel_5",
+    apiLevel = 31,
+    showBackground = true
+)
+@Composable
+private fun PreviewSigcTextFieldWithPlaceholder() {
+    SIGCTheme(darkTheme = false) {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SigcTextField(
+                    value = "",
+                    onValueChange = {},
+                    label = "Correo electrónico",
+                    placeholder = "ej: usuario@dominio.com",
+                    icon = Icons.Default.Email
+                )
+            }
+        }
+    }
+}
+
+
+@Preview(
+    name = "5. Con Placeholder",
+    device = "id:pixel_5",
+    apiLevel = 31,
+    showBackground = true
+)
+@Composable
+private fun PreviewSigcTextFieldWithTextCenter() {
+    SIGCTheme(darkTheme = false) {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SigcTextField(
+                    value = "value",
+                    onValueChange = {},
+                    label = "Correo electrónico",
+//                    placeholder = "ej: usuario@dominio.com",
+//                    icon = Icons.Default.Email,
+                    textStyle = TextStyle(textAlign = TextAlign.Center),
                 )
             }
         }

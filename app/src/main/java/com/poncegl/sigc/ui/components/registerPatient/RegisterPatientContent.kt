@@ -106,6 +106,17 @@ fun RegisterPatientContent(
     val currentStepIndex = state.currentStep
 
     val fabAction = when (steps[currentStepIndex]) {
+        RegisterPatientStep.One -> {
+            FabAction(
+                isVisible = isLargeDevice &&  state.patientName.isNotBlank() &&
+                        (state.patientDob != null) &&
+                        state.diagnosisName.isNotBlank(),
+                text = "Continuar",
+                icon = null,
+                onClick = { onEvent(RegisterPatientEvent.NextStep) }
+            )
+        }
+
         RegisterPatientStep.Two -> {
             FabAction(
                 isVisible = isLargeDevice && state.isAddingMedication && state.medicationForm.name.isNotBlank(),

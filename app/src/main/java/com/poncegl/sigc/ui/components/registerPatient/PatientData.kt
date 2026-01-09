@@ -24,6 +24,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.shared.SigcButton
 import com.poncegl.sigc.ui.components.shared.SigcCallout
@@ -53,6 +55,10 @@ fun PatientData(
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val widthSizeClass = adaptiveInfo.windowSizeClass.windowWidthSizeClass
+    val isLargeDevice = widthSizeClass != WindowWidthSizeClass.COMPACT
 
     // Fechas límite visuales | Hoy y hace 120 años
     val today = Calendar.getInstance().timeInMillis
@@ -199,14 +205,16 @@ fun PatientData(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            SigcButton(
-                text = "Continuar",
-                onClick = {
-                    onEvent(RegisterPatientEvent.NextStep)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = isFormValid
-            )
+            if (!isLargeDevice) {
+                SigcButton(
+                    text = "Continuar",
+                    onClick = {
+                        onEvent(RegisterPatientEvent.NextStep)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = isFormValid
+                )
+            }
         }
     }
 }

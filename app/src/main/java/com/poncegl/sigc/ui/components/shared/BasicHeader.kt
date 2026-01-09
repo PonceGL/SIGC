@@ -40,7 +40,7 @@ fun BasicHeader(modifier: Modifier = Modifier) {
 
             Box(contentAlignment = Alignment.Center) {
                 Image(
-                    painter = painterResource(id = R.drawable.nurse),
+                    painter = painterResource(id = R.drawable.sigc_icon),
                     contentDescription = "App Logo",
                     modifier = Modifier.fillMaxSize(fraction = 0.8f),
                     contentScale = ContentScale.Fit

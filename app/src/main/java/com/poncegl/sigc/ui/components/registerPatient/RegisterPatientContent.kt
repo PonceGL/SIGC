@@ -1,7 +1,6 @@
 package com.poncegl.sigc.ui.components.registerPatient
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -20,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.R
 import com.poncegl.sigc.ui.components.shared.HeaderAction
 import com.poncegl.sigc.ui.components.shared.HeaderIcon
+import com.poncegl.sigc.ui.components.shared.ScaffoldActionButton
 import com.poncegl.sigc.ui.components.shared.SigcStepCircle
 import com.poncegl.sigc.ui.components.shared.SigcStepper
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientEvent
@@ -74,8 +75,12 @@ fun RegisterPatientContent(
     state: RegisterPatientUiState,
     onEvent: (RegisterPatientEvent) -> Unit,
     onNavigateToHome: () -> Unit,
-    widthSizeClass: WindowWidthSizeClass,
 ) {
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val widthSizeClass = adaptiveInfo.windowSizeClass.windowWidthSizeClass
+    val useTwoColumns = widthSizeClass != androidx.window.core.layout.WindowWidthSizeClass.COMPACT
+    val showFloatingButton = state.currentStep == 1 && state.isAddingMedication && useTwoColumns
 
     val steps = listOf(
         RegisterPatientStep.One,
@@ -108,6 +113,17 @@ fun RegisterPatientContent(
     }
 
     Scaffold(
+        floatingActionButton = {
+            // TODO: desacoplar logica escalable
+            if (showFloatingButton) {
+                ScaffoldActionButton(
+                    widthSizeClass = WindowWidthSizeClass.Expanded,
+                    label = "Guardar Medicamento",
+                    onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
+                    icon = null
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
@@ -136,8 +152,6 @@ fun RegisterPatientContent(
                     endIcon = currentHeaderInfo.icon,
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
-
                 SigcStepper(
                     steps = steps,
                     currentStepIndex = safeHeaderIndex,
@@ -164,7 +178,6 @@ fun RegisterPatientContent(
                         RegisterPatientStep.One -> PatientData(
                             state = state,
                             onEvent = onEvent,
-                            widthSizeClass = widthSizeClass
                         )
 
                         RegisterPatientStep.Two -> MedicationsData(
@@ -176,7 +189,6 @@ fun RegisterPatientContent(
                             onContinueAction = {
                                 onEvent(RegisterPatientEvent.NextStep)
                             },
-                            widthSizeClass = WindowWidthSizeClass.Compact,
                         )
 
                         RegisterPatientStep.Three -> StepThree()
@@ -217,7 +229,6 @@ private fun PatientDataLight() {
             ),
             onEvent = {},
             onNavigateToHome = {},
-            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
@@ -237,7 +248,6 @@ private fun PatientDataDark() {
             ),
             onEvent = {},
             onNavigateToHome = {},
-            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
@@ -257,7 +267,6 @@ private fun PatientDataFoldDark() {
             ),
             onEvent = {},
             onNavigateToHome = {},
-            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }
@@ -277,7 +286,6 @@ private fun PatientDataTabletDark() {
             ),
             onEvent = {},
             onNavigateToHome = {},
-            widthSizeClass = WindowWidthSizeClass.Compact,
         )
     }
 }

@@ -27,6 +27,5 @@ fun RegisterPatientScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onNavigateToHome = onNavigateToHome,
-        widthSizeClass = widthSizeClass,
     )
 }

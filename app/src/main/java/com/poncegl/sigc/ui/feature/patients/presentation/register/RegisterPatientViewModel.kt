@@ -327,10 +327,25 @@ class RegisterPatientViewModel @Inject constructor(
             )
         }
 
-        Log.i("ViewModel addMedicationToDraft", "=================================")
-        Log.i("ViewModel addMedicationToDraft", "Added medication to draft: ${_uiState.value.patientName}")
-        Log.i("ViewModel addMedicationToDraft", "Added medication to draft: ${_uiState.value.addedMedications}")
-        Log.i("ViewModel addMedicationToDraft", "=================================")
+        Log.i("RegisterPatientVM", "=== addMedicationToDraft ===")
+        Log.i("RegisterPatientVM", "Patient Name: ${_uiState.value.patientName}")
+
+        val medsList = _uiState.value.addedMedications.joinToString(separator = ",\n", prefix = "[\n", postfix = "\n]") { med ->
+            """
+            |  {
+            |    "name": "${med.name}",
+            |    "presentation": "${med.presentation}",
+            |    "config": {
+            |       "description": "${med.config.doseDescription}",
+            |       "frequency": "${med.config.frequencyDescription}"
+            |    },
+            |    "inventory": ${med.inventory?.let { "{ \"total\": ${it.quantityCurrent}, \"unit\": \"${it.unit}\" }" } ?: "null"}
+            |  }
+            """.trimMargin()
+        }
+
+        Log.i("RegisterPatientVM", "Added Medications:\n$medsList")
+        Log.i("RegisterPatientVM", "============================")
     }
 
     private fun addHistoryToDraft() {

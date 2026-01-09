@@ -66,7 +66,6 @@ fun <T> SigcStepper(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp)
     ) {
         LinearProgressIndicator(
             progress = { animatedProgress },

@@ -24,7 +24,6 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ import java.util.Calendar
 fun PatientData(
     state: RegisterPatientUiState,
     onEvent: (RegisterPatientEvent) -> Unit,
-    widthSizeClass: WindowWidthSizeClass
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
@@ -226,7 +224,6 @@ private fun PatientDataLight() {
                     patientAgeInput = "35"
                 ),
                 onEvent = {},
-                widthSizeClass = WindowWidthSizeClass.Compact,
             )
         }
     }
@@ -250,7 +247,6 @@ private fun PatientDataDark() {
                     patientAgeInput = "35"
                 ),
                 onEvent = {},
-                widthSizeClass = WindowWidthSizeClass.Compact,
             )
         }
     }
@@ -274,7 +270,6 @@ private fun PatientDataFoldDark() {
                     patientAgeInput = "35"
                 ),
                 onEvent = {},
-                widthSizeClass = WindowWidthSizeClass.Expanded,
             )
         }
     }
@@ -298,7 +293,6 @@ private fun PatientDataTabletDark() {
                     patientAgeInput = "35"
                 ),
                 onEvent = {},
-                widthSizeClass = WindowWidthSizeClass.Expanded,
             )
         }
     }

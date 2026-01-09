@@ -25,7 +25,7 @@ sealed interface FabIcon {
 @Composable
 fun ScaffoldActionButton(
     modifier: Modifier = Modifier,
-    icon: FabIcon = FabIcon.Vector(Icons.Filled.Add),
+    icon: (FabIcon?) = FabIcon.Vector(Icons.Filled.Add),
     widthSizeClass: WindowWidthSizeClass,
     label: String,
     onClick: () -> Unit,
@@ -38,7 +38,9 @@ fun ScaffoldActionButton(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.surface,
         ) {
-            IconContent(icon, label)
+            if (icon != null) {
+                IconContent(icon, label)
+            }
         }
     } else {
         ExtendedFloatingActionButton(
@@ -46,7 +48,11 @@ fun ScaffoldActionButton(
             modifier = modifier,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.surface,
-            icon = { IconContent(icon, label) },
+            icon = {
+                if (icon != null) {
+                    IconContent(icon, label)
+                }
+            },
             text = { Text(text = label) },
         )
     }

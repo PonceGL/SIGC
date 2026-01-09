@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.medication.RegisterMedication
 import com.poncegl.sigc.ui.components.shared.AddMedicationCard
 import com.poncegl.sigc.ui.components.shared.SigcButton
@@ -45,7 +42,6 @@ fun MedicationsData(
     onEvent: (RegisterPatientEvent) -> Unit,
     onBackAction: () -> Unit,
     onContinueAction: () -> Unit,
-    widthSizeClass: WindowWidthSizeClass,
 ) {
     val scrollState = rememberScrollState()
 
@@ -54,14 +50,12 @@ fun MedicationsData(
 
     Column(
         modifier = Modifier
-            .widthIn(max = UI.MAX_WIDTH.dp)
             .fillMaxSize(),
     ) {
         if (isShowingMedicationForm) {
             RegisterMedication(
                 formState = state.medicationForm,
                 onEvent = onEvent,
-                widthSizeClass = widthSizeClass
             )
         } else {
             if (addedMedications.isEmpty()) { // TODO: Reemplazar por data de ViewModel
@@ -169,6 +163,7 @@ private fun MedicationsDataLight() {
                         MedicationsData(
                             state = RegisterPatientUiState(
                                 currentStep = 1,
+                                isAddingMedication = false,
                                 patientName = "Juan Perez",
                                 isDobUnknown = true,
                                 patientAgeInput = "35"
@@ -176,7 +171,6 @@ private fun MedicationsDataLight() {
                             onEvent = {},
                             onBackAction = {},
                             onContinueAction = {},
-                            widthSizeClass = WindowWidthSizeClass.Compact
                         )
                     }
                 }
@@ -217,6 +211,7 @@ private fun MedicationsDataDark() {
                         MedicationsData(
                             state = RegisterPatientUiState(
                                 currentStep = 1,
+                                isAddingMedication = false,
                                 patientName = "Juan Perez",
                                 isDobUnknown = true,
                                 patientAgeInput = "35"
@@ -224,7 +219,6 @@ private fun MedicationsDataDark() {
                             onEvent = {},
                             onBackAction = {},
                             onContinueAction = {},
-                            widthSizeClass = WindowWidthSizeClass.Compact,
                         )
                     }
                 }
@@ -265,6 +259,7 @@ private fun MedicationsDataFoldDark() {
                         MedicationsData(
                             state = RegisterPatientUiState(
                                 currentStep = 1,
+                                isAddingMedication = false,
                                 patientName = "Juan Perez",
                                 isDobUnknown = true,
                                 patientAgeInput = "35"
@@ -272,7 +267,6 @@ private fun MedicationsDataFoldDark() {
                             onEvent = {},
                             onBackAction = {},
                             onContinueAction = {},
-                            widthSizeClass = WindowWidthSizeClass.Expanded,
                         )
                     }
                 }
@@ -313,6 +307,7 @@ private fun MedicationsDataTabletDark() {
                         MedicationsData(
                             state = RegisterPatientUiState(
                                 currentStep = 1,
+                                isAddingMedication = false,
                                 patientName = "Juan Perez",
                                 isDobUnknown = true,
                                 patientAgeInput = "35"
@@ -320,7 +315,6 @@ private fun MedicationsDataTabletDark() {
                             onEvent = {},
                             onBackAction = {},
                             onContinueAction = {},
-                            widthSizeClass = WindowWidthSizeClass.Expanded,
                         )
                     }
                 }

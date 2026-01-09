@@ -47,7 +47,7 @@ fun LoginHeader(
 
             Box(contentAlignment = Alignment.Center) {
                 Image(
-                    painter = painterResource(id = R.drawable.nurse),
+                    painter = painterResource(id = R.drawable.sigc_icon),
                     contentDescription = "App Logo",
                     modifier = Modifier.size(70.dp),
                     contentScale = ContentScale.Fit

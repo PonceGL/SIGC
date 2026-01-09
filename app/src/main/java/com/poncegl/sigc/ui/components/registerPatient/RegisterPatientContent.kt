@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.poncegl.sigc.R
+import com.poncegl.sigc.ui.components.shared.FabIcon
 import com.poncegl.sigc.ui.components.shared.HeaderAction
 import com.poncegl.sigc.ui.components.shared.HeaderIcon
 import com.poncegl.sigc.ui.components.shared.ScaffoldActionButton
@@ -70,6 +71,13 @@ sealed class HeaderInformation(val title: String, val description: String, val i
     )
 }
 
+data class FabAction(
+    val isVisible: Boolean,
+    val text: String,
+    val icon: FabIcon?,
+    val onClick: () -> Unit
+)
+
 @Composable
 fun RegisterPatientContent(
     state: RegisterPatientUiState,
@@ -79,8 +87,7 @@ fun RegisterPatientContent(
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val widthSizeClass = adaptiveInfo.windowSizeClass.windowWidthSizeClass
-    val useTwoColumns = widthSizeClass != androidx.window.core.layout.WindowWidthSizeClass.COMPACT
-    val showFloatingButton = state.currentStep == 1 && state.isAddingMedication && useTwoColumns
+    val isLargeDevice = widthSizeClass != androidx.window.core.layout.WindowWidthSizeClass.COMPACT
 
     val steps = listOf(
         RegisterPatientStep.One,
@@ -98,6 +105,19 @@ fun RegisterPatientContent(
 
     val currentStepIndex = state.currentStep
 
+    val fabAction = when (steps[currentStepIndex]) {
+        RegisterPatientStep.Two -> {
+            FabAction(
+                isVisible = isLargeDevice && state.isAddingMedication && state.medicationForm.name.isNotBlank(),
+                text = "Guardar Medicamento",
+                icon = null,
+                onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) }
+            )
+        }
+
+        else -> FabAction(isVisible = false, text = "", icon = null, onClick = {})
+    }
+
     val onBackAction = {
         if (state.currentStep == 1 && state.isAddingMedication) {
             onEvent(RegisterPatientEvent.CancelAddingMedication)
@@ -114,12 +134,11 @@ fun RegisterPatientContent(
 
     Scaffold(
         floatingActionButton = {
-            // TODO: desacoplar logica escalable
-            if (showFloatingButton) {
+            if (fabAction.isVisible) {
                 ScaffoldActionButton(
                     widthSizeClass = WindowWidthSizeClass.Expanded,
-                    label = "Guardar Medicamento",
-                    onClick = { onEvent(RegisterPatientEvent.SaveMedicationToList) },
+                    label = fabAction.text,
+                    onClick = fabAction.onClick,
                     icon = null
                 )
             }

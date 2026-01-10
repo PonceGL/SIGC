@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -72,151 +74,208 @@ fun PatientData(
 
     Column(
         modifier = Modifier
-            .widthIn(max = UI.MAX_WIDTH.dp)
             .fillMaxSize()
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
     ) {
 
-        SigcCallout(
-            title = "Información requerida",
-            description = "Estos datos son necesarios para identificar y dar seguimiento al paciente."
-        )
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 1. NOMBRE
-            SigcTextField(
-                value = state.patientName,
-                onValueChange = { onEvent(RegisterPatientEvent.NameChanged(it)) },
-                label = "¿Cómo se llama el paciente?",
-                isError = state.error != null && state.patientName.isBlank(),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        Row(modifier = Modifier.widthIn(max = UI.MAX_WIDTH.dp)) {
+            SigcCallout(
+                title = "Información requerida",
+                description = "Estos datos son necesarios para identificar y dar seguimiento al paciente."
             )
+        }
 
-            AnimatedContent(
-                targetState = state.isDobUnknown,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(300)) togetherWith fadeOut(
-                        animationSpec = tween(
-                            300
-                        )
-                    )
-                },
-                label = "DatePickerAnimation"
-            ) { unknown ->
+        Spacer(modifier = Modifier.height(20.dp))
 
-                if (!unknown) {
-                    // CONVERSIÓN: LocalDate (Domain) -> Long (UI Millis)
-                    val dateMillis = state.patientDob?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()
-                        ?.toEpochMilli()
-
-                    SigcDatePicker(
-                        label = "Fecha de nacimiento",
-                        selectedDate = dateMillis,
-                        onDateSelected = { millis ->
-                            if (millis != null) {
-                                // CONVERSIÓN: Long (UI Millis) -> LocalDate (Domain)
-                                val localDate = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.of("UTC"))
-                                    .toLocalDate()
-                                onEvent(RegisterPatientEvent.DobChanged(localDate))
-                            }
-                        },
-                        minDateMillis = minDate,
-                        maxDateMillis = today,
-                        colors = DatePickerDefaults.colors(
-                            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-                            todayDateBorderColor = MaterialTheme.colorScheme.primary,
-                            todayContentColor = MaterialTheme.colorScheme.primary
-                        )
-                    )
-                }
-            }
-
-            // 3. CHECKBOX "NO CONOZCO FECHA"
+        if (isLargeDevice) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalAlignment = Alignment.Top
             ) {
-                Checkbox(
-                    checked = state.isDobUnknown,
-                    onCheckedChange = { checked ->
-                        onEvent(RegisterPatientEvent.DobUnknownChanged(checked))
-                    }
-                )
-                Text(
-                    text = "No conozco la fecha exacta",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                // Columna Izquierda
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    NameSection(state, onEvent, focusManager)
+                    DiagnosisSection(state, onEvent, focusManager, isFormValid, isLargeDevice)
+                }
+                // Columna Derecha
+                Column(modifier = Modifier.weight(1f)) {
+                    DobAndAgeSection(state, onEvent, focusManager, minDate, today)
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                NameSection(state, onEvent, focusManager)
+                DobAndAgeSection(state, onEvent, focusManager, minDate, today)
+                DiagnosisSection(state, onEvent, focusManager, isFormValid, isLargeDevice)
+
             }
 
-            // 4. EDAD MANUAL
-            SigcTextField(
-                value = state.patientAgeInput,
-                onValueChange = { input ->
-                    if (input.all { char -> char.isDigit() }) {
-                        onEvent(RegisterPatientEvent.AgeChanged(input))
-                    }
+            Spacer(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(20.dp)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(30.dp)
+            )
+
+            SigcButton(
+                text = "Continuar",
+                onClick = {
+                    onEvent(RegisterPatientEvent.NextStep)
                 },
-                label = "¿Cuántos años tiene?",
-                keyboardType = KeyboardType.Number,
-                enabled = state.isDobUnknown,
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                modifier = Modifier.fillMaxWidth(),
+                enabled = isFormValid
             )
+        }
+    }
+}
 
-            // 5. DIAGNÓSTICO
-            SigcTextField(
-                value = state.diagnosisName,
-                onValueChange = { onEvent(RegisterPatientEvent.DiagnosisChanged(it)) },
-                label = "¿Cuál es su diagnóstico o estado actual?",
-                keyboardType = KeyboardType.Text,
-                modifier = Modifier.heightIn(130.dp),
-                singleLine = false,
-                imeAction = ImeAction.Done,
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        if (isFormValid) {
-                            onEvent(RegisterPatientEvent.NextStep)
-                        } else {
-                            focusManager.clearFocus()
+@Composable
+private fun NameSection(
+    state: RegisterPatientUiState,
+    onEvent: (RegisterPatientEvent) -> Unit,
+    focusManager: FocusManager
+) {
+    SigcTextField(
+        value = state.patientName,
+        onValueChange = { onEvent(RegisterPatientEvent.NameChanged(it)) },
+        label = "¿Cómo se llama el paciente?",
+        isError = state.error != null && state.patientName.isBlank(),
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Words,
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+        )
+    )
+}
+
+@Composable
+private fun DobAndAgeSection(
+    state: RegisterPatientUiState,
+    onEvent: (RegisterPatientEvent) -> Unit,
+    focusManager: FocusManager,
+    minDate: Long,
+    today: Long
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        AnimatedContent(
+            targetState = state.isDobUnknown,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(300)) togetherWith fadeOut(
+                    animationSpec = tween(300)
+                )
+            },
+            label = "DatePickerAnimation"
+        ) { unknown ->
+            if (!unknown) {
+                val dateMillis =
+                    state.patientDob?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
+                SigcDatePicker(
+                    label = "Fecha de nacimiento",
+                    selectedDate = dateMillis,
+                    onDateSelected = { millis ->
+                        if (millis != null) {
+                            val localDate =
+                                Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
+                            onEvent(RegisterPatientEvent.DobChanged(localDate))
                         }
-                    }
-                )
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            if (!isLargeDevice) {
-                SigcButton(
-                    text = "Continuar",
-                    onClick = {
-                        onEvent(RegisterPatientEvent.NextStep)
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = isFormValid
+                    minDateMillis = minDate,
+                    maxDateMillis = today,
+                    colors = DatePickerDefaults.colors(
+                        selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                        todayDateBorderColor = MaterialTheme.colorScheme.primary,
+                        todayContentColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
         }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Checkbox(
+                checked = state.isDobUnknown,
+                onCheckedChange = { checked ->
+                    onEvent(
+                        RegisterPatientEvent.DobUnknownChanged(
+                            checked
+                        )
+                    )
+                }
+            )
+            Text(
+                text = "No conozco la fecha exacta",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        SigcTextField(
+            value = state.patientAgeInput,
+            onValueChange = { input ->
+                if (input.all { char -> char.isDigit() }) {
+                    onEvent(RegisterPatientEvent.AgeChanged(input))
+                }
+            },
+            label = "¿Cuántos años tiene?",
+            keyboardType = KeyboardType.Number,
+            enabled = state.isDobUnknown,
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            )
+        )
     }
+}
+
+@Composable
+private fun DiagnosisSection(
+    state: RegisterPatientUiState,
+    onEvent: (RegisterPatientEvent) -> Unit,
+    focusManager: FocusManager,
+    isFormValid: Boolean,
+    isLargeDevice: Boolean
+) {
+    SigcTextField(
+        value = state.diagnosisName,
+        onValueChange = { onEvent(RegisterPatientEvent.DiagnosisChanged(it)) },
+        label = "¿Cuál es su diagnóstico o estado actual?",
+        keyboardType = KeyboardType.Text,
+        modifier = Modifier.heightIn(130.dp),
+        singleLine = false,
+        imeAction = if (isLargeDevice) ImeAction.Next else ImeAction.Done,
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Right) },
+            onDone = {
+                if (isFormValid) {
+                    onEvent(RegisterPatientEvent.NextStep)
+                } else {
+                    focusManager.clearFocus()
+                }
+            }
+        )
+    )
 }
 
 @Preview(name = "1. Mobile Light", device = "id:pixel_5", showBackground = true)

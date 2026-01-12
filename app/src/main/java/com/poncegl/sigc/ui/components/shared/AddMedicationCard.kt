@@ -28,12 +28,12 @@ import com.poncegl.sigc.R
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
 @Composable
-fun AddMedicationCard(onAction: () -> Unit) {
+fun AddMedicationCard(modifier: Modifier = Modifier, onAction: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
     ) {
         Column(

@@ -1,6 +1,7 @@
 package com.poncegl.sigc.ui.components.registerPatient
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +22,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
+import com.poncegl.sigc.core.constants.UI
 import com.poncegl.sigc.ui.components.medication.RegisterMedication
 import com.poncegl.sigc.ui.components.shared.AddMedicationCard
 import com.poncegl.sigc.ui.components.shared.SigcButton
@@ -36,6 +43,7 @@ import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatien
 import com.poncegl.sigc.ui.feature.patients.presentation.register.RegisterPatientUiState
 import com.poncegl.sigc.ui.theme.SIGCTheme
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MedicationsData(
     state: RegisterPatientUiState,
@@ -45,12 +53,23 @@ fun MedicationsData(
 ) {
     val scrollState = rememberScrollState()
 
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val widthSizeClass = adaptiveInfo.windowSizeClass.windowWidthSizeClass
+    val isLargeDevice = widthSizeClass != WindowWidthSizeClass.COMPACT
+
     val addedMedications = state.addedMedications
     val isShowingMedicationForm = state.isAddingMedication
+
+    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
+
+    BackHandler(navigator.canNavigateBack()) {
+        navigator.navigateBack()
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (isShowingMedicationForm) {
             RegisterMedication(
@@ -61,9 +80,11 @@ fun MedicationsData(
             if (addedMedications.isEmpty()) { // TODO: Reemplazar por data de ViewModel
                 Column(
                     modifier = Modifier
-                        .verticalScroll(scrollState),
+                        .verticalScroll(scrollState)
+                        .padding(vertical = if (isLargeDevice) 40.dp else 0.dp)
+                        .widthIn(max = UI.MAX_WIDTH.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isLargeDevice) 40.dp else 20.dp)
                 ) {
                     Text(
                         text = "Agrega los medicamentos que toma el paciente. Puedes agregar más después.",
@@ -73,9 +94,9 @@ fun MedicationsData(
                         textAlign = TextAlign.Left,
                     )
 
-                    AddMedicationCard(onAction = {
+                    AddMedicationCard {
                         onEvent(RegisterPatientEvent.StartAddingMedication)
-                    })
+                    }
                 }
             } else {
                 // Todo: Lista de medicamentos registrados (tal vez SwipeToDismissBox) aún no existe
@@ -115,22 +136,32 @@ fun MedicationsData(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                if (isLargeDevice) {
+                    Spacer(modifier = Modifier.weight(2f))
+                }
 
-                SigcButton(
-                    text = "Anterior",
-                    onClick = { onBackAction() },
-                    modifier = Modifier.weight(1f),
-                    type = SigcButtonType.Outlined,
-                    startIcon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
-                )
+                Row(
+                    modifier = Modifier
+                        .widthIn(max = UI.MAX_WIDTH.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SigcButton(
+                        text = "Anterior",
+                        onClick = { onBackAction() },
+                        modifier = Modifier.weight(1f),
+                        type = SigcButtonType.Outlined,
+                        startIcon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
+                    )
 
-                SigcButton(
-                    text = "Siguiente",
-                    onClick = { onContinueAction() },
-                    modifier = Modifier.weight(1f),
-                    type = SigcButtonType.Primary,
-                    endIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
-                )
+                    SigcButton(
+                        text = "Siguiente",
+                        onClick = { onContinueAction() },
+                        modifier = Modifier.weight(1f),
+                        type = SigcButtonType.Primary,
+                        endIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
+                    )
+                }
             }
         }
     }
